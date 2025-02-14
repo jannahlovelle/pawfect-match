@@ -64,8 +64,8 @@ The app is built with both pet owners and their furry companions in mind, provid
     </ul>
 
 <h2>Developer's Profile</h2>
-    <p><a href="https://github.com/OliGwapa">Your Name</a></p>
-    <p>Brief description about the developer (optional: link to social profiles or portfolio).</p>
-
+    <p><a href="https://github.com/OliGwapa">Alyssa Blanche S. Alivio</a></p>
+    <p><a href="https://github.com/clabisellasg">Genesis T. Clabisellas</a></p>
+    <p><a href="https://github.com/jannahlovelle">Jannah Lovelle B. Sendrijas</a></p>
 </body>
 </html>
