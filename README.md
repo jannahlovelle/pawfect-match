@@ -79,7 +79,7 @@ The app is built with both pet owners and their furry companions in mind, provid
 
 <details>
   <summary>Diagram</summary>
-  (Add your ERD or architecture diagram here)
+  -[Entity Relationship Diagram](https://online.visual-paradigm.com/share.jsp?id=333535313236382d32)
 </details>
 
 ## Developer Profiles
