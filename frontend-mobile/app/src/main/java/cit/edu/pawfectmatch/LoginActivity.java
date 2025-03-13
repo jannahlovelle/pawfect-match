@@ -19,7 +19,7 @@ public class LoginActivity extends AppCompatActivity {
     private int failedAttempts = 0;
     private static final int MAX_ATTEMPTS = 5;
     private static final int LOCK_TIME = 15000;
-    private EditText username, password;
+    private EditText email, password;
     private TextView signupText;
     private Button loginButton;
     private Handler handler = new Handler();
@@ -36,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
             return insets;
         });
 
-        username = findViewById(R.id.username);
+        email = findViewById(R.id.email);
         password = findViewById(R.id.password);
         loginButton = findViewById(R.id.loginButton);
         signupText = findViewById(R.id.signupLinkText);
@@ -45,7 +45,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String user = username.getText().toString();
+                String user = email.getText().toString();
                 String pass = password.getText().toString();
 
                 if (user.equals("user") && pass.equals("1234")) {
