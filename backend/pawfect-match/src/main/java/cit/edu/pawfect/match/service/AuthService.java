@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -31,6 +32,13 @@ public class AuthService {
 
     public String register(RegisterRequest userRequest) {
         System.out.println("Registering user: " + userRequest.getEmail());
+
+        // Check if the email already exists
+        Optional<User> existingUser = userRepository.findByEmail(userRequest.getEmail());
+        if (existingUser.isPresent()) {
+            throw new RuntimeException("Email is already registered");
+        }
+
         User user = new User();
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
