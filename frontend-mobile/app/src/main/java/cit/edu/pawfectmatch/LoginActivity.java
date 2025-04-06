@@ -3,6 +3,7 @@ package cit.edu.pawfectmatch;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,16 +24,25 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.gson.GsonBuilder;
+
+import cit.edu.pawfectmatch.network.ApiService;
+import cit.edu.pawfectmatch.network.AuthRequest;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
-    private int failedAttempts = 0;
-    private static final int MAX_ATTEMPTS = 5;
     private EditText email, password;
-    private TextView signupText;
+    private TextView signupText, errorText;
     private Button loginButton;
     ImageView googleBtn;
     GoogleSignInOptions gso;
     GoogleSignInClient gsc;
+    private static final String BASE_URL = "http://192.168.1.5:8080/";
+    private ApiService apiService;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -52,31 +62,58 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signupText = findViewById(R.id.signupLinkText);
         googleBtn = findViewById(R.id.google);
+        errorText = findViewById(R.id.errortxt);
+
 
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         gsc = GoogleSignIn.getClient(this, gso);
 
+        //retrofit
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setLenient().create())) // Add lenient mode
+                .build();
+        apiService = retrofit.create(ApiService.class);
+
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String user = email.getText().toString();
-                String pass = password.getText().toString();
+                String stremail = email.getText().toString().trim();
+                String strpassword = password.getText().toString().trim();
 
-                if (user.equals("user") && pass.equals("1234")) {
-                    Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                    failedAttempts = 0; // Reset failed attempts on success
-                } else {
-                    failedAttempts++;
-                    Toast.makeText(LoginActivity.this, "Login Failed!", Toast.LENGTH_SHORT).show();
+                if (stremail.isEmpty() || strpassword.isEmpty()) {
+                    Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
+                    errorText.setText("Please enter email and password");
+                    return;
 
-                    if (failedAttempts >= MAX_ATTEMPTS) {
-                        loginButton.setEnabled(false);
-                        Toast.makeText(LoginActivity.this, "Too many failed attempts! Try again in 15 seconds.", Toast.LENGTH_LONG).show();
-
-                    }
                 }
+
+                loginUser(stremail, strpassword);
             }
         });
+
+//        OLD login
+//        loginButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                String user = email.getText().toString();
+//                String pass = password.getText().toString();
+//
+//                if (user.equals("user") && pass.equals("1234")) {
+//                    Toast.makeText(LoginActivity.this, "Login Successful!", Toast.LENGTH_SHORT).show();
+//                    failedAttempts = 0; // Reset failed attempts on success
+//                } else {
+//                    failedAttempts++;
+//                    Toast.makeText(LoginActivity.this, "Login Failed!", Toast.LENGTH_SHORT).show();
+//
+//                    if (failedAttempts >= MAX_ATTEMPTS) {
+//                        loginButton.setEnabled(false);
+//                        Toast.makeText(LoginActivity.this, "Too many failed attempts! Try again in 15 seconds.", Toast.LENGTH_LONG).show();
+//
+//                    }
+//                }
+//            }
+//        });
 
         signupText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,5 +155,45 @@ public class LoginActivity extends AppCompatActivity {
     void navigateToHomeActivity(){
         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
         startActivity(intent);
+    }
+
+//    MONGODB FUNCTIONS
+    private void loginUser(String email, String password) {
+        AuthRequest authRequest = new AuthRequest(email, password);
+        Call<String> call = apiService.login(authRequest);
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    String token = response.body();
+                    if (token != null) {
+                        Log.d("Login", "Token: " + token);
+                        Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                        getSharedPreferences("auth", MODE_PRIVATE)
+                                .edit()
+                                .putString("jwt_token", token)
+                                .apply();
+                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+
+                        Toast.makeText(LoginActivity.this, "Login failed: No token", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    errorText.setText("Login Error, code: "+ response.code());
+                    Toast.makeText(LoginActivity.this, "Login failed: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Log.e("Login Error", "Code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                errorText.setText("Login Error, error: "+ t.getMessage());
+                Toast.makeText(LoginActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("Login Failure", t.getMessage());
+            }
+        });
     }
 }

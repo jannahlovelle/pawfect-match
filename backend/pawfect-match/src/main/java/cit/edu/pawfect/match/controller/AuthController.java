@@ -35,4 +35,9 @@ public class AuthController {
             return ResponseEntity.status(500).body("An error occurred during login: " + e.getMessage());
         }
     }
+
+    @GetMapping("/test")
+        public ResponseEntity<String> test() {
+            return ResponseEntity.ok("Server is running!");
+    }
 }
