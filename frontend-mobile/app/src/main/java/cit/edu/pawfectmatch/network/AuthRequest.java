@@ -1,6 +1,5 @@
 package cit.edu.pawfectmatch.network;
 
-
 public class AuthRequest {
     private String email;
     private String password;
@@ -10,6 +9,7 @@ public class AuthRequest {
         this.password = password;
     }
 
+    // Getters and setters (optional, but Retrofit uses them if present)
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }

@@ -2,6 +2,7 @@ package cit.edu.pawfectmatch;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -36,11 +37,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText email, password;
-    private TextView signupText, errorText;
+    private TextView signupText;
     private Button loginButton;
     ImageView googleBtn;
     GoogleSignInOptions gso;
     GoogleSignInClient gsc;
+
     private static final String BASE_URL = "http://192.168.1.5:8080/";
     private ApiService apiService;
 
@@ -62,13 +64,10 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signupText = findViewById(R.id.signupLinkText);
         googleBtn = findViewById(R.id.google);
-        errorText = findViewById(R.id.errortxt);
-
 
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         gsc = GoogleSignIn.getClient(this, gso);
 
-        //retrofit
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setLenient().create())) // Add lenient mode
@@ -83,16 +82,12 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (stremail.isEmpty() || strpassword.isEmpty()) {
                     Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
-                    errorText.setText("Please enter email and password");
                     return;
-
                 }
 
                 loginUser(stremail, strpassword);
             }
         });
-
-//        OLD login
 //        loginButton.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -170,29 +165,28 @@ public class LoginActivity extends AppCompatActivity {
                     if (token != null) {
                         Log.d("Login", "Token: " + token);
                         Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
-                        getSharedPreferences("auth", MODE_PRIVATE)
-                                .edit()
+                        SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+                        prefs.edit()
                                 .putString("jwt_token", token)
+                                .putString("user_email", email) // Store email for HomeActivity
                                 .apply();
                         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                         startActivity(intent);
                         finish();
                     } else {
-
-                        Toast.makeText(LoginActivity.this, "Login failed: No token", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "Login failed: No token received", Toast.LENGTH_SHORT).show();
+                        Log.e("Login", "No token in response");
                     }
                 } else {
-                    errorText.setText("Login Error, code: "+ response.code());
                     Toast.makeText(LoginActivity.this, "Login failed: " + response.code(), Toast.LENGTH_SHORT).show();
-                    Log.e("Login Error", "Code: " + response.code());
+                    Log.e("Login", "Error code: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                errorText.setText("Login Error, error: "+ t.getMessage());
                 Toast.makeText(LoginActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("Login Failure", t.getMessage());
+                Log.e("Login", "Failure: " + t.getMessage());
             }
         });
     }
