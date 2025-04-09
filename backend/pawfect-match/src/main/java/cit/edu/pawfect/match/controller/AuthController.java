@@ -55,4 +55,9 @@ public class AuthController {
             return ResponseEntity.status(401).body(errorResponse);
         }
     }
+
+    @GetMapping("/test")
+        public ResponseEntity<String> test() {
+            return ResponseEntity.ok("Server is running!");
+    }
 }
