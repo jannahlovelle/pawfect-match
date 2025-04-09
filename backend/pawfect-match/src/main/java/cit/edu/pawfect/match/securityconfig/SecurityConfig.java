@@ -37,8 +37,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .requestMatchers("/users/update/**").authenticated()
-                .requestMatchers("/users/delete/**").authenticated()
+                .requestMatchers("/users/**").authenticated()
+                .requestMatchers("/pets/**").authenticated()
+                .requestMatchers("/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception
