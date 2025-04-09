@@ -93,8 +93,25 @@ body, html {
     border-radius: 5px;
     width: 95%;
     font-size: 0.95rem;
+    background-color: white;   
+    color: #333;
 }
- 
+
+input[type="checkbox"] {
+    accent-color: white;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    border: 1px solid #000; 
+}
+
+input[type="checkbox"] {
+    accent-color: white !important;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+  
 .btn {
     background-color: #6D2323;
     color: white;

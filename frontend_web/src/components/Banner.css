@@ -1,0 +1,39 @@
+.banner {
+    width: 100%;
+    background-color: #E5D0AC;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .banner-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .logo {
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+  }
+  
+  .greeting {
+    font-size: 1rem;
+    color: #000;
+  }
+  
+  .signout-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .signout-icon {
+    height: 24px;
+    width: 24px;
+  }
+  
