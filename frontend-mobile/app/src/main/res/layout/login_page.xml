@@ -53,6 +53,13 @@
                         android:textColor="@color/black"
                         android:textSize="36dp" />
 
+                    <TextView
+                        android:id="@+id/login_errorView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:text="TextView" />
+
                     <EditText
                         android:id="@+id/login_email"
                         android:layout_width="match_parent"

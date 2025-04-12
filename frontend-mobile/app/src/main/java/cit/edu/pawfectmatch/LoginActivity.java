@@ -29,6 +29,7 @@ import com.google.gson.GsonBuilder;
 
 import cit.edu.pawfectmatch.network.ApiService;
 import cit.edu.pawfectmatch.network.AuthRequest;
+import cit.edu.pawfectmatch.network.LoginResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -37,7 +38,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText email, password;
-    private TextView signupText;
+    private TextView signupText,errtxt;
     private Button loginButton;
     ImageView googleBtn;
     GoogleSignInOptions gso;
@@ -64,6 +65,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signupText = findViewById(R.id.signupLinkText);
         googleBtn = findViewById(R.id.google);
+        errtxt = findViewById(R.id.login_errorView);
 
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         gsc = GoogleSignIn.getClient(this, gso);
@@ -81,6 +83,8 @@ public class LoginActivity extends AppCompatActivity {
                 String strpassword = password.getText().toString().trim();
 
                 if (stremail.isEmpty() || strpassword.isEmpty()) {
+                    errtxt.setVisibility(TextView.VISIBLE);
+                    errtxt.setText("Please enter email and password");
                     Toast.makeText(LoginActivity.this, "Please enter email and password", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -142,6 +146,8 @@ public class LoginActivity extends AppCompatActivity {
                 task.getResult(ApiException.class);
                 navigateToHomeActivity();
             } catch (ApiException e) {
+                errtxt.setVisibility(TextView.VISIBLE);
+                errtxt.setText("ERROR:"+e.getStatusCode()+" "+e.getMessage());
                 Toast.makeText(getApplicationContext(),"Something went wrong",Toast.LENGTH_SHORT).show();
             }
         }
@@ -155,39 +161,54 @@ public class LoginActivity extends AppCompatActivity {
 //    MONGODB FUNCTIONS
     private void loginUser(String email, String password) {
         AuthRequest authRequest = new AuthRequest(email, password);
-        Call<String> call = apiService.login(authRequest);
+        Call<LoginResponse> call = apiService.login(authRequest);
 
-        call.enqueue(new Callback<String>() {
+        call.enqueue(new Callback<LoginResponse>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    String token = response.body();
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    LoginResponse loginResponse = response.body();
+                    String token = loginResponse.getToken();
+                    String userID = loginResponse.getUserID();
+
                     if (token != null) {
-                        Log.d("Login", "Token: " + token);
+                        Log.d("Login", "Token: " + token + ", UserID: " + userID);
                         Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+
+                        // Save token and userID to SharedPreferences
                         SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
                         prefs.edit()
                                 .putString("jwt_token", token)
-                                .putString("user_email", email) // Store email for HomeActivity
+                                .putString("user_id", userID) // Store userID
+                                .putString("user_email", email) // Store email
                                 .apply();
+
+                        // Redirect to HomeActivity
                         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                         startActivity(intent);
                         finish();
                     } else {
+                        errtxt.setVisibility(TextView.VISIBLE);
+                        errtxt.setText("Login failed: No token received");
                         Toast.makeText(LoginActivity.this, "Login failed: No token received", Toast.LENGTH_SHORT).show();
                         Log.e("Login", "No token in response");
                     }
                 } else {
+                    errtxt.setVisibility(TextView.VISIBLE);
+                    errtxt.setText("Login failed: " + response.code());
                     Toast.makeText(LoginActivity.this, "Login failed: " + response.code(), Toast.LENGTH_SHORT).show();
                     Log.e("Login", "Error code: " + response.code());
                 }
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                errtxt.setVisibility(TextView.VISIBLE);
+                errtxt.setText("ERROR:"+t.getMessage());
                 Toast.makeText(LoginActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.e("Login", "Failure: " + t.getMessage());
             }
+
         });
     }
 }
