@@ -10,7 +10,7 @@ public interface ApiService {
 
     // Login endpoint (returns a plain string token)
     @POST("auth/login")
-    Call<String> login(@Body AuthRequest request);
+    Call<LoginResponse> login(@Body AuthRequest request);
 
     // Get user by email from MongoDB
     @GET("users/email/{email}")
