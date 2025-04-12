@@ -12,7 +12,6 @@ public class LoginResponse {
     public String getUserID() {
         return userID;
     }
-
     public String getToken() {
         return token;
     }
