@@ -1,6 +1,5 @@
 package cit.edu.pawfect.match.controller;
 
-import cit.edu.pawfect.match.dto.AddPhotoRequest;
 import cit.edu.pawfect.match.dto.CreatePetRequest;
 import cit.edu.pawfect.match.dto.UpdatePetRequest;
 import cit.edu.pawfect.match.entity.Pet;
@@ -9,11 +8,13 @@ import cit.edu.pawfect.match.entity.User;
 import cit.edu.pawfect.match.repository.UserRepository;
 import cit.edu.pawfect.match.service.PetService;
 import jakarta.validation.Valid;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +24,13 @@ import java.util.Map;
 @RequestMapping("/pets")
 public class PetController {
 
+    private static final Logger logger = LoggerFactory.getLogger(PetController.class);
+
     @Autowired
     private PetService petService;
 
     @Autowired
     private UserRepository userRepository;
-
 
     @PostMapping("/create")
     public ResponseEntity<?> createPet(@Valid @RequestBody CreatePetRequest petRequest) {
@@ -57,7 +59,7 @@ public class PetController {
     }
 
     @PostMapping("/{petId}/photos")
-    public ResponseEntity<?> addPhoto(@PathVariable String petId, @RequestBody AddPhotoRequest photoRequest) {
+    public ResponseEntity<?> addPhoto(@PathVariable String petId, @RequestParam("file") MultipartFile file) {
         try {
             // Extract the email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -72,12 +74,16 @@ public class PetController {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Pet not found or does not belong to the user"));
 
+            // Validate the file
+            validateFile(file);
+
             // Add the photo
-            Photo savedPhoto = petService.addPhoto(petId, photoRequest);
+            Photo savedPhoto = petService.addPhoto(petId, file);
 
             // Return the photo ID and a success message
             Map<String, String> response = new HashMap<>();
             response.put("photoId", savedPhoto.getPhotoId());
+            response.put("url", savedPhoto.getUrl());
             response.put("message", "Photo added successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -86,6 +92,36 @@ public class PetController {
             errorResponse.put("message", "An error occurred while adding the photo: " + e.getMessage());
             return ResponseEntity.status(400).body(errorResponse);
         }
+    }
+
+    // File validation method
+    private void validateFile(MultipartFile file) {
+        // Check if the file is empty
+        if (file == null || file.isEmpty()) {
+            logger.error("File upload failed: File is empty");
+            throw new IllegalArgumentException("File is empty. Please upload a valid file.");
+        }
+
+        // Validate file type (JPEG or PNG)
+        String contentType = file.getContentType();
+        if (contentType == null || !isValidImageType(contentType)) {
+            logger.error("File upload failed: Invalid file type - {}", contentType);
+            throw new IllegalArgumentException("Invalid file type. Only JPEG and PNG files are allowed.");
+        }
+
+        // Validate file size (e.g., max 5MB)
+        long maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.getSize() > maxFileSize) {
+            logger.error("File upload failed: File size exceeds 5MB - {} bytes", file.getSize());
+            throw new IllegalArgumentException("File size exceeds the limit of 5MB.");
+        }
+
+        logger.info("File validation passed: type={}, size={} bytes", contentType, file.getSize());
+    }
+
+    // Helper method to check if the file is a JPEG or PNG
+    private boolean isValidImageType(String contentType) {
+        return contentType.equals("image/jpeg") || contentType.equals("image/png");
     }
 
     @GetMapping("/my-pets")

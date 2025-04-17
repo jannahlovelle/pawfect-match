@@ -1,2 +1,5 @@
 # Ignore .env file
 .env
+
+# Ignore firebase service account
+firebase-service-account.json

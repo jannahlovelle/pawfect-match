@@ -7,12 +7,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Photo {
 
     @Id
-    private String photoId; // Primary key (MongoDB ObjectId)
+    private String photoId; 
 
-    private String petId; // Foreign key referencing the Pet (MongoDB ObjectId)
-    private String url; // URL of the photo
+    private String petId; 
+    private String url; 
 
-    // Constructors
     public Photo() {}
 
     public Photo(String petId, String url) {
