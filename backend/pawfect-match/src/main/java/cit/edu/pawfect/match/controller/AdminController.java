@@ -1,10 +1,10 @@
 package cit.edu.pawfect.match.controller;
 
 import cit.edu.pawfect.match.dto.UpdatePetRequest;
-import cit.edu.pawfect.match.dto.UpdatePhotoRequest;
 import cit.edu.pawfect.match.dto.UpdateUserRequest;
 import cit.edu.pawfect.match.dto.UserProfile;
 import cit.edu.pawfect.match.entity.Pet;
+import cit.edu.pawfect.match.entity.Photo;
 import cit.edu.pawfect.match.entity.User;
 import cit.edu.pawfect.match.service.PetService;
 import cit.edu.pawfect.match.service.UserService;
@@ -13,17 +13,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
 
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/admin")
 @PreAuthorize("hasAuthority('ADMIN')")
 public class AdminController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
 
@@ -89,22 +95,69 @@ public class AdminController {
 
     @PutMapping("/pets/photos/{photoId}")
     public ResponseEntity<Map<String, String>> updatePetPhoto(
-        @PathVariable String photoId,
-        @RequestBody UpdatePhotoRequest request) {
-    petService.adminUpdatePetPhoto(photoId, request.getUrl());
-    Map<String, String> response = new HashMap<>();
-    response.put("photoId", photoId);
-    response.put("message", "Pet photo updated successfully");
-    return ResponseEntity.ok(response);
-}
+            @PathVariable String photoId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            // Validate the file
+            validateFile(file);
+
+            // Update the photo using the service
+            Photo updatedPhoto = petService.adminUpdatePetPhoto(photoId, file);
+
+            // Prepare the response
+            Map<String, String> response = new HashMap<>();
+            response.put("photoId", updatedPhoto.getPhotoId());
+            response.put("url", updatedPhoto.getUrl());
+            response.put("message", "Pet photo updated successfully by admin");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred while updating the pet photo: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
 
     @DeleteMapping("/pets/photos/{photoId}")
     public ResponseEntity<Map<String, String>> deletePetPhoto(
             @PathVariable String photoId) {
-        petService.adminDeletePetPhoto(photoId);
-        Map<String, String> response = new HashMap<>();
-        response.put("photoId", photoId);
-        response.put("message", "Pet photo deleted successfully");
-        return ResponseEntity.ok(response);
+        try {
+            petService.adminDeletePetPhoto(photoId);
+            Map<String, String> response = new HashMap<>();
+            response.put("photoId", photoId);
+            response.put("message", "Pet photo deleted successfully by admin");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred while deleting the pet photo: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            logger.error("File upload failed: File is empty");
+            throw new IllegalArgumentException("File is empty. Please upload a valid file.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !isValidImageType(contentType)) {
+            logger.error("File upload failed: Invalid file type - {}", contentType);
+            throw new IllegalArgumentException("Invalid file type. Only JPEG and PNG files are allowed.");
+        }
+
+        long maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.getSize() > maxFileSize) {
+            logger.error("File upload failed: File size exceeds 5MB - {} bytes", file.getSize());
+            throw new IllegalArgumentException("File size exceeds the limit of 5MB.");
+        }
+
+        logger.info("File validation passed: type={}, size={} bytes", contentType, file.getSize());
+    }
+
+    private boolean isValidImageType(String contentType) {
+        return contentType.equals("image/jpeg") || contentType.equals("image/png");
     }
 }
+// 

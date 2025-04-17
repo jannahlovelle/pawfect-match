@@ -5,24 +5,27 @@ body, html {
     padding: 0;
     font-family: Arial, sans-serif;
 }
- 
+
 .login-container {
     display: flex;
     height: 100vh;
     width: 100%;
     background-color: #f5f5f5;
 }
- 
+
 /* Left Section Styling */
 .left-section {
     flex: 1;
-    position: relative;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    position: relative;
+    height: 100%; /* Ensure full height */
+    width: 100%;  /* Ensure full width */
+    overflow: hidden; /* Prevents overflow if image is too large */
 }
- 
+
+/* Background overlay */
 .background-overlay {
     position: absolute;
     top: 0;
@@ -34,21 +37,28 @@ body, html {
     background-position: center;
     opacity: 0.3; 
 }
- 
+
+/* Logo Container Styling */
 .logo-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    height: 100%;            /* Full height */
+    width: 100%;             /* Full width */
     position: relative;
-    text-align: center;
+    z-index: 1;              /* Ensure it’s above background overlay */
 }
- 
+
+/* Logo Styling */
 .logo {
-    width: 300px;
-    height: 300px;
-    border-radius: 50%;      /* Makes it circular */
-    object-fit: cover;       /* Ensures it doesn’t stretch */
-    z-index: 1;
-    border: 1px solid white; /* Optional: adds a border */
+    width: 800px;  /* Increase width */
+    height: 800px; /* Increase height */
+    border-radius: 50%; /* Circular shape */
+    object-fit: cover;  /* Avoid stretching */
+    border: 1px solid white; /* Optional border */
+    z-index: 2;        /* Ensure logo is above other elements */
 }
- 
+
 /* Right Section Styling */
 .right-section {
     flex: 1;
@@ -57,7 +67,8 @@ body, html {
     justify-content: center;
     align-items: center;
 }
- 
+
+/* Form container */
 .form-container {
     background: #fff;
     padding: 25px;
@@ -113,6 +124,7 @@ input[type="checkbox"] {
 }
   
 .btn {
+    margin-bottom: 15px;
     background-color: #6D2323;
     color: white;
     padding: 10px;

@@ -4,11 +4,13 @@ import cit.edu.pawfect.match.dto.AuthRequest;
 import cit.edu.pawfect.match.dto.RegisterRequest;
 import cit.edu.pawfect.match.entity.User;
 import cit.edu.pawfect.match.service.AuthService;
+
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +56,12 @@ public class AuthController {
             errorResponse.put("message", "An error occurred during login: " + e.getMessage());
             return ResponseEntity.status(401).body(errorResponse);
         }
+    }
+    @PostMapping("/firebase-login")
+    public ResponseEntity<Map<String, String>> firebaseLogin(@RequestBody Map<String, String> request) {
+        String idToken = request.get("idToken");
+        Map<String, String> response = authService.firebaseLogin(idToken);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/test")

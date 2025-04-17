@@ -28,6 +28,7 @@ public class User {
     private String profilePicture;
     private Date joinDate;
     private Date lastLogin;
+    private String signUpMethod; 
 
     public User() {
     }
