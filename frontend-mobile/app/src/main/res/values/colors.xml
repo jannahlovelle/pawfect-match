@@ -4,4 +4,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="orange">#E2955C</color>
     <color name="maroon">#6D2323</color>
+
+    <color name="shimmer_placeholder">#E0E0E0</color>
+    <color name="link">#3F51B5</color>
+    <color name="primary">#4CAF50</color>
+
 </resources>

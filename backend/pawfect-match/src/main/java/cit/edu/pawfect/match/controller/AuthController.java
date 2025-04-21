@@ -2,10 +2,18 @@ package cit.edu.pawfect.match.controller;
 
 import cit.edu.pawfect.match.dto.AuthRequest;
 import cit.edu.pawfect.match.dto.RegisterRequest;
+import cit.edu.pawfect.match.entity.User;
 import cit.edu.pawfect.match.service.AuthService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -15,24 +23,49 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest userRequest) {
+    public ResponseEntity<Map<String, String>> register(@Valid@RequestBody RegisterRequest userRequest) {
         try {
-            String token = authService.register(userRequest);
-            return ResponseEntity.ok(token);
+            User savedUser = authService.register(userRequest);
+            Map<String, String> response = new HashMap<>();
+            response.put("userId", savedUser.getUserID());
+            response.put("message", "User registered successfully. Please log in to obtain a token.");
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
         } catch (Exception e) {
             System.out.println("Registration failed with exception: " + e.getMessage());
-            return ResponseEntity.status(500).body("An error occurred during registration: " + e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred during registration: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequest authRequest) {
         try {
-            String token = authService.login(authRequest);
-            return ResponseEntity.ok(token);
+            Map<String, String> response = authService.login(authRequest);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.out.println("Login failed with exception: " + e.getMessage());
-            return ResponseEntity.status(500).body("An error occurred during login: " + e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred during login: " + e.getMessage());
+            return ResponseEntity.status(401).body(errorResponse);
         }
+    }
+    @PostMapping("/firebase-login")
+    public ResponseEntity<Map<String, String>> firebaseLogin(@RequestBody Map<String, String> request) {
+        String idToken = request.get("idToken");
+        Map<String, String> response = authService.firebaseLogin(idToken);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/test")
+        public ResponseEntity<String> test() {
+            return ResponseEntity.ok("Server is running!");
     }
 }

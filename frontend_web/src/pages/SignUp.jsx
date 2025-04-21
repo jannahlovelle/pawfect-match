@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/login.css"; // Reusing the same CSS
+import "../styles/login.css";
 import logo from "../assets/Logo1.png";
 import { Link } from "react-router-dom";
 
@@ -16,48 +16,91 @@ export default function Signup() {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
+  const validateForm = () => {
+    // Required fields check
     for (const key in formData) {
       if (!formData[key]) {
-        setError("All fields are required.");
-        return;
+        return "All fields are required.";
       }
     }
 
+    // Password match
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      return "Passwords do not match.";
+    }
+
+    // Password regex
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      return "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number.";
+    }
+
+    // Email regex
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!emailRegex.test(formData.email)) {
+      return "Email must be valid.";
+    }
+
+    // Phone regex
+    const phoneRegex = /^\+?[0-9]{10,15}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      return "Phone number must be valid (10-15 digits, optional + prefix).";
+    }
+
+    return ""; // No errors
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
       return;
     }
 
+    const requestData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      address: formData.address,
+      password: formData.password,
+    };
+
     try {
-      const res = await fetch("http://localhost:5000/api/signup", {
+      const res = await fetch("http://localhost:8080/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestData),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Signup failed");
-
-      alert("Signup successful!");
+      if (!res.ok) {
+        throw new Error(data.message || "Signup failed");
+      }
+      
+      alert("Signup successful! Please log in.");
       navigate("/login");
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-container">
-      {/* Left Section */}
       <div className="left-section">
         <div className="background-overlay"></div>
         <div className="logo-container">
@@ -65,7 +108,6 @@ export default function Signup() {
         </div>
       </div>
 
-      {/* Right Section - Signup Form */}
       <div className="right-section">
         <div className="form-container">
           <h2>WELCOME!</h2>
@@ -131,10 +173,14 @@ export default function Signup() {
               required
             />
 
-            <button type="submit" className="btn">Sign up</button>
+            <button type="submit" className="btn" disabled={loading}>
+              {loading ? "Signing up..." : "Sign up"}
+            </button>
           </form>
 
-          <p>Already have an account? <Link to="/">Sign in here!</Link></p>
+          <p>
+            Already have an account? <Link to="/">Sign in here!</Link>
+          </p>
         </div>
       </div>
     </div>
