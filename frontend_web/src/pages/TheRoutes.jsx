@@ -5,6 +5,10 @@ import Signup from './SignUp';
 import ForgotPassword from './ForgotPassword';
 import Dashboard from './Dashboard'; // Import your Dashboard component
 import ProtectedRoute from './ProtectedRoute'; // Import your ProtectedRoute component
+import UserProfile from './UserProfile'; // Import User Profile
+import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
+import AddPet from './AddPet'; // Import AddPet
+
 
 
 export default function TheRoutes() {    
@@ -14,7 +18,11 @@ export default function TheRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/home" element={<Dashboard />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+            <Route path="/edit-profile" element={<EditUserProfile />} />
+            <Route path="/add-pet" element={<AddPet />} />
         </Routes>
 
     );

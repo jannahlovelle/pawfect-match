@@ -36,7 +36,7 @@ export default function Dashboard() {
         {/* Left Sidebar */}
         {/* Left Sidebar */}
       <div className="sidebar">
-          <Link to="/home"><Home size={20} /> Home</Link>
+          <Link to="/dashboard"><Home size={20} /> Home</Link>
           <Link to="/search"><Search size={20} /> Search</Link>
           <Link to="/notifications"><Bell size={20} /> Notifications</Link>
           <Link to="/messages"><Mail size={20} /> Messages</Link>
