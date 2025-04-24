@@ -5,8 +5,19 @@
     <color name="orange">#E2955C</color>
     <color name="maroon">#6D2323</color>
 
-    <color name="shimmer_placeholder">#E0E0E0</color>
+    <color name="shimmer_placeholder">#D0CFCF</color>
     <color name="link">#3F51B5</color>
-    <color name="primary">#4CAF50</color>
+    <color name="primary">#FFB385</color>
 
+    <color name="colorPrimary">#FFFFFF</color>
+    <color name="colorOnPrimary">#2C2C2C</color>
+
+    <color name="colorBackground">#FFFFFF</color>
+    <color name="colorOnBackground">#000000</color>
+
+<!--    google-->
+    <color name="google_blue">#4285F4</color>
+    <color name="google_red">#DB4437</color>
+    <color name="google_yellow">#F4B400</color>
+    <color name="google_green">#0F9D58</color>
 </resources>
