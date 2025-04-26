@@ -37,7 +37,7 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/rounded_edittext"
                 android:drawableStart="@drawable/baseline_email_24"
-                android:hint="Email"
+                android:hint="@string/email"
                 android:inputType="textEmailAddress"
                 android:padding="12dp" />
 
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="First Name"
+                android:hint="@string/first_name"
                 android:padding="12dp" />
 
             <!-- Last Name -->
@@ -58,7 +58,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="Last Name"
+                android:hint="@string/last_name"
                 android:padding="12dp" />
 
             <!-- Phone -->
@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="Phone Number"
+                android:hint="@string/phone_number"
                 android:inputType="phone"
                 android:padding="12dp" />
 
@@ -79,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="Address"
+                android:hint="@string/address"
                 android:padding="12dp" />
 
             <!-- Next Button -->
@@ -99,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:padding="12dp"
-                    android:text="Next"
+                    android:text="@string/next"
                     android:textColor="@android:color/white"
                     android:textSize="16sp" />
 
