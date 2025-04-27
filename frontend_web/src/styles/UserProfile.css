@@ -53,9 +53,10 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.05);
   }
   
+
   .profile-container {
     max-width: 1000px;
-    margin: 50px auto 0 auto;
+    margin: 10px auto 0 auto;
     background-color: #f6f6f6;
   }
   
@@ -79,11 +80,16 @@
   }
   
   .profile-pic {
-    width: 120px;
-    height: 120px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     object-fit: cover;
     border: 1px solid #ccc;
+    transition: transform 0.3s ease;
+  }
+
+  .profile-pic:hover {
+    transform: scale(1.05);
   }
   
   .edit-profile-link {
@@ -102,7 +108,7 @@
   .profile-info p {
     color: #333;
     margin: 6px 0;
-    font-size: 16px;
+    font-size: 14px;
   }
   
   .divider {

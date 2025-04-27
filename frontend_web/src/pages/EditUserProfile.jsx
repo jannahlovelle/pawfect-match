@@ -1,26 +1,92 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import "../styles/EditUserProfile.css";
 import Banner from '../components/Banner';
 import { Home, Search, Bell, Mail, Settings, User, List, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import profilePic from '../assets/profilepicture.png';
+import defaultProfilePic from '../assets/defaultprofileimage.png';
+import { onAuthStateChanged } from "firebase/auth"; // 🔥 added
+import { auth } from "../firebase"; // 🔥 added
 
 export default function EditUserProfile() {
   const navigate = useNavigate();
   const firstName = localStorage.getItem("firstName");
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
+
+  // Load image and form data
+  useEffect(() => {
+    const savedImage = localStorage.getItem("profileImage");
+    if (savedImage) {
+      setSelectedImage(savedImage);
+    }
+
+    const savedFormData = {
+      firstName: localStorage.getItem("firstName") || '',
+      lastName: localStorage.getItem("lastName") || '',
+      email: localStorage.getItem("email") || '',
+      phone: localStorage.getItem("phone") || '',
+      address: localStorage.getItem("address") || ''
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setFormData({
+          firstName: savedFormData.firstName || (user.displayName?.split(' ')[0] || ''),
+          lastName: savedFormData.lastName || (user.displayName?.split(' ')[1] || ''),
+          email: savedFormData.email || (user.email || ''),
+          phone: savedFormData.phone,
+          address: savedFormData.address
+        });
+      } else {
+        setFormData(savedFormData);
+      }
+    });
+  }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result);
+        localStorage.setItem("profileImage", reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
 
   const handleCancel = () => {
     navigate("/profile");
   };
 
-  const handleSave = () => {
-    // Save logic here
+  const handleSave = (e) => {
+    e.preventDefault();
+    // Save to localStorage
+    Object.keys(formData).forEach(key => {
+      localStorage.setItem(key, formData[key]);
+    });
+
     alert("Profile changes saved!");
     navigate("/profile");
   };
 
   return (
-    <div className="home-wrapper"> 
+    <div className="home-wrapper">
       <Banner firstName={firstName} />
 
       <div className="main-content">
@@ -36,26 +102,68 @@ export default function EditUserProfile() {
         {/* Center - Editable Profile */}
         <div className="center-content">
           <div className="edit-profile-container">
-            <img src={profilePic} alt="Profile" className="profile-pic" />
-            <button className="change-photo-btn">Change photo</button>
+            <img 
+              src={selectedImage || defaultProfilePic} 
+              alt="Profile" 
+              className="profile-pic" 
+            />
+            <label className="change-photo-btn">
+              Change photo
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleImageChange} 
+                style={{ display: 'none' }} 
+              />
+            </label>
 
-            <div className="form-group">
-              <input type="text" placeholder="Alyssa Blanche Alivio" />
-            </div>
-            <div className="form-group">
-              <input type="email" placeholder="alyssablanchealivio@gmail.com" />
-            </div>
-            <div className="form-group">
-              <input type="text" placeholder="+63 932 212 9876" />
-            </div>
-            <div className="form-group">
-              <input type="text" placeholder="Salvador Ext., Labangon, Cebu City" />
-            </div>
+            <form onSubmit={handleSave} className="form-group">
+              <input
+                type="text"
+                name="firstName"
+                placeholder="Enter first name"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="text"
+                name="lastName"
+                placeholder="Enter last name"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter email address"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Enter phone number"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="text"
+                name="address"
+                placeholder="Enter address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
 
-            <div className="form-buttons">
-              <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-              <button className="save-btn" onClick={handleSave}>Save changes</button>
-            </div>
+              <div className="form-buttons">
+                <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                <button type="submit" className="save-btn">Save changes</button>
+              </div>
+            </form>
           </div>
         </div>
 

@@ -8,6 +8,7 @@ import ProtectedRoute from './ProtectedRoute'; // Import your ProtectedRoute com
 import UserProfile from './UserProfile'; // Import User Profile
 import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
 import AddPet from './AddPet'; // Import AddPet
+import Messages from './Messages'; // Import Messages
 
 
 
@@ -23,6 +24,7 @@ export default function TheRoutes() {
             <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
             <Route path="/edit-profile" element={<EditUserProfile />} />
             <Route path="/add-pet" element={<AddPet />} />
+            <Route path="/messages" element={<Messages />} />
         </Routes>
 
     );
