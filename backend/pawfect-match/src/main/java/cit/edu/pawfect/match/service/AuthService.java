@@ -6,6 +6,8 @@ import cit.edu.pawfect.match.entity.User;
 import cit.edu.pawfect.match.entity.UserType;
 import cit.edu.pawfect.match.repository.UserRepository;
 import cit.edu.pawfect.match.util.JwtUtil;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
@@ -16,7 +18,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +43,10 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    public User register(RegisterRequest userRequest) {
+    @Autowired
+    private Cloudinary cloudinary;
+
+    public User register(RegisterRequest userRequest, MultipartFile file) throws IOException {
         logger.info("Registering user: {}", userRequest.getEmail());
 
         // Check if the email already exists
@@ -57,10 +64,22 @@ public class AuthService {
         user.setPhone(userRequest.getPhone());
         user.setAddress(userRequest.getAddress());
         user.setRole(userRequest.getRole() != null ? UserType.valueOf(userRequest.getRole()) : UserType.USER);
-        user.setProfilePicture(userRequest.getProfilePicture());
         user.setJoinDate(new Date());
         user.setLastLogin(new Date());
         user.setSignUpMethod(userRequest.getSignUpMethod() != null ? userRequest.getSignUpMethod() : "EMAIL");
+
+        // Handle profile picture upload
+        if (file != null && !file.isEmpty()) {
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                    ObjectUtils.asMap(
+                            "folder", "pawfectmatch/users",
+                            "transformation", new com.cloudinary.Transformation()
+                                    .width(200).height(200).crop("fill")
+                    ));
+            user.setProfilePicture((String) uploadResult.get("secure_url"));
+        } else {
+            user.setProfilePicture(null);
+        }
 
         User savedUser = userRepository.save(user);
         logger.info("Saved user with email: {}", savedUser.getEmail());
@@ -74,7 +93,6 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
         );
 
-        // Find the user to get their userId
         User user = userRepository.findByEmail(authRequest.getEmail())
                 .orElseThrow(() -> {
                     logger.error("User not found with email: {}", authRequest.getEmail());
@@ -84,41 +102,47 @@ public class AuthService {
         String token = jwtUtil.generateToken(authRequest.getEmail());
         logger.info("Login successful, token generated: {}", token);
 
-        // Update last login
         user.setLastLogin(new Date());
         userRepository.save(user);
 
         Map<String, String> response = new HashMap<>();
         response.put("userId", user.getUserID());
         response.put("token", token);
+        response.put("role", user.getRole().toString());
         response.put("firstName", user.getFirstName());
         return response;
     }
 
-    public Map<String, String> firebaseLogin(String idToken) {
+    public Map<String, String> firebaseLogin(String idToken, MultipartFile file) throws IOException {
         logger.info("Processing Firebase login with ID token");
-    
+
         if (idToken == null || idToken.isEmpty()) {
             logger.error("ID token is required");
             throw new IllegalArgumentException("ID token is required");
         }
-    
+
         try {
-            // Verify the Firebase ID token
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
             String email = decodedToken.getEmail();
             String name = decodedToken.getName();
             String uid = decodedToken.getUid();
-            String picture = decodedToken.getPicture();
-    
-            // Check if the user exists in the database
+
             User user;
             Optional<User> existingUser = userRepository.findByEmail(email);
             if (existingUser.isPresent()) {
                 user = existingUser.get();
                 logger.info("Existing user found with email: {}", email);
+                // Update profile picture if provided
+                if (file != null && !file.isEmpty()) {
+                    Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                            ObjectUtils.asMap(
+                                    "folder", "pawfectmatch/users",
+                                    "transformation", new com.cloudinary.Transformation()
+                                            .width(200).height(200).crop("fill")
+                            ));
+                    user.setProfilePicture((String) uploadResult.get("secure_url"));
+                }
             } else {
-                // User not found, create a new user
                 RegisterRequest registerRequest = new RegisterRequest();
                 registerRequest.setEmail(email);
                 registerRequest.setFirstName(name != null ? name.split(" ")[0] : "Unknown");
@@ -126,28 +150,44 @@ public class AuthService {
                 registerRequest.setPassword("firebase-" + uid);
                 registerRequest.setRole("USER");
                 registerRequest.setSignUpMethod("GOOGLE");
-                registerRequest.setProfilePicture(picture);
-                user = register(registerRequest);
+                user = register(registerRequest, file);
                 logger.info("New user created with email: {}", email);
             }
-    
-            // Generate a JWT token for the user
+
             String token = jwtUtil.generateToken(user.getEmail());
             logger.info("Firebase login successful, token generated: {}", token);
-    
-            // Update last login
+
             user.setLastLogin(new Date());
             userRepository.save(user);
-    
+
             Map<String, String> response = new HashMap<>();
             response.put("userId", user.getUserID());
             response.put("token", token);
-            response.put("firstName", user.getFirstName());  // Include the firstName here
-            
+            response.put("firstName", user.getFirstName());
             return response;
         } catch (FirebaseAuthException e) {
             logger.error("Invalid Firebase ID token: {}", e.getMessage());
             throw new IllegalArgumentException("Invalid Firebase ID token: " + e.getMessage());
         }
-    }  
+    }
+
+    public User updateProfilePicture(String userId, MultipartFile file) throws IOException {
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "folder", "pawfectmatch/users",
+                        "transformation", new com.cloudinary.Transformation()
+                                .width(200).height(200).crop("fill")
+                ));
+
+        String profilePictureUrl = (String) uploadResult.get("secure_url");
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setProfilePicture(profilePictureUrl);
+        return userRepository.save(user);
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
 }

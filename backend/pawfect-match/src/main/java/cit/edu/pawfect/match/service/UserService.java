@@ -1,6 +1,5 @@
 package cit.edu.pawfect.match.service;
 
-import cit.edu.pawfect.match.dto.RegisterRequest;
 import cit.edu.pawfect.match.dto.UpdateUserRequest;
 import cit.edu.pawfect.match.entity.Photo;
 import cit.edu.pawfect.match.entity.User;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import cit.edu.pawfect.match.dto.PetWithPhotos;
 import cit.edu.pawfect.match.dto.UserProfile;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,36 +74,6 @@ public class UserService {
 
         logger.info("Successfully fetched {} user profiles", userProfiles.size());
         return userProfiles;
-    }
-
-    public User registerUser(RegisterRequest registerRequest) {
-        logger.info("Registering new user with email: {}", registerRequest.getEmail());
-
-        if (registerRequest.getEmail() == null || registerRequest.getEmail().trim().isEmpty()) {
-            logger.error("Email cannot be null or empty");
-            throw new IllegalArgumentException("Email cannot be null or empty");
-        }
-
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            logger.error("Email already taken: {}", registerRequest.getEmail());
-            throw new IllegalArgumentException("Email is already taken");
-        }
-
-        User user = new User();
-        user.setFirstName(registerRequest.getFirstName());
-        user.setLastName(registerRequest.getLastName());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setEmail(registerRequest.getEmail());
-        user.setPhone(registerRequest.getPhone());
-        user.setAddress(registerRequest.getAddress());
-        user.setRole(registerRequest.getRole() != null ? UserType.valueOf(registerRequest.getRole()) : UserType.USER);
-        user.setProfilePicture(registerRequest.getProfilePicture());
-        user.setJoinDate(new Date());
-        user.setLastLogin(new Date());
-
-        User savedUser = userRepository.save(user);
-        logger.info("Successfully registered user with userId: {}, email: {}", savedUser.getUserID(), savedUser.getEmail());
-        return savedUser;
     }
 
     public User updateUser(String userId, String authenticatedEmail, UpdateUserRequest updateRequest) {

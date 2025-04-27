@@ -3,12 +3,15 @@ package cit.edu.pawfect.match.controller;
 import cit.edu.pawfect.match.dto.UpdateUserRequest;
 import cit.edu.pawfect.match.entity.Photo;
 import cit.edu.pawfect.match.entity.User;
+import cit.edu.pawfect.match.service.AuthService;
 import cit.edu.pawfect.match.service.PetService;
 import cit.edu.pawfect.match.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +29,9 @@ import cit.edu.pawfect.match.dto.UserProfile;
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     UserService userService;
@@ -103,7 +109,7 @@ public class UserController {
             User user = userService.findByEmail(email);
 
             // Update the photo using the service
-            Photo updatedPhoto = petService.updatePetPhoto(photoId, user.getUserID(), file);
+            Photo updatedPhoto = petService.updatePetPhoto(photoId, user.getEmail(), file);
 
             // Prepare the response
             Map<String, String> response = new HashMap<>();
@@ -125,7 +131,7 @@ public class UserController {
         try {
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             User user = userService.findByEmail(email);
-            petService.deletePetPhoto(photoId, user.getUserID());
+            petService.deletePetPhoto(photoId, user.getEmail());
             Map<String, String> response = new HashMap<>();
             response.put("photoId", photoId);
             response.put("message", "Pet photo deleted successfully");
@@ -161,5 +167,18 @@ public class UserController {
 
     private boolean isValidImageType(String contentType) {
         return contentType.equals("image/jpeg") || contentType.equals("image/png");
+    }
+
+    @PutMapping("/{userId}/profile-picture")
+    public ResponseEntity<User> updateProfilePicture(
+            @PathVariable String userId,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) throws IOException {
+        String authenticatedUserId = (String) request.getAttribute("userId");
+        if (!userId.equals(authenticatedUserId)) {
+            return ResponseEntity.status(403).build();
+        }
+        User updatedUser = authService.updateProfilePicture(userId, file);
+        return ResponseEntity.ok(updatedUser);
     }
 }

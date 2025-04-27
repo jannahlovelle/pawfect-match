@@ -48,9 +48,18 @@ export default function Login() {
       if (!res.ok) throw new Error(data.message || "Login failed");
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
       localStorage.setItem("firstName", data.firstName);
+      console.log(data); // Debug: Check the response data
       alert("Login successful!");
-      navigate("/dashboard");
+
+      if(data.role === "ADMIN") {
+        navigate("/admin-dashboard");
+      } else if(data.role === "USER") {
+        navigate("/dashboard");
+      } else {
+        setError("Invalid role");
+      }
     } catch (err) {
       setError(err.message);
     } finally {

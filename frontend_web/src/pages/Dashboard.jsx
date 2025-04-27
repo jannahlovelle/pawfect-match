@@ -18,6 +18,7 @@ export default function Dashboard() {
       await auth.signOut();
       localStorage.removeItem("token");
       localStorage.removeItem("firstName");
+      localStorage.removeItem("role");
       alert("You have logged out successfully!");
       navigate("/login");
     } catch (error) {
