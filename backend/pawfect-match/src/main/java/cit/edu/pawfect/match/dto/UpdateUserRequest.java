@@ -10,7 +10,6 @@ public class UpdateUserRequest {
     private String firstName; // Added
     @NotBlank(message = "Last name is required")
     private String lastName;  // Added
-    @NotBlank(message = "Password is required")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$", message = "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number.")
     private String password;
     @NotBlank(message = "Email is required")

@@ -11,6 +11,7 @@ public class Photo {
 
     private String petId; 
     private String url; 
+    private String cloudinaryPublicId;
 
     public Photo() {}
 
@@ -42,5 +43,13 @@ public class Photo {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getCloudinaryPublicId() {
+        return cloudinaryPublicId;
+    }
+
+    public void setCloudinaryPublicId(String cloudinaryPublicId) {
+        this.cloudinaryPublicId = cloudinaryPublicId;
     }
 }

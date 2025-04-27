@@ -13,6 +13,7 @@ public class PawfectMatchApplication {
 		Dotenv dotenv = Dotenv.load();
         System.setProperty("MONGODB_URI", dotenv.get("MONGODB_URI"));
 		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
+		System.setProperty("CLOUDINARY_URL", dotenv.get("CLOUDINARY_URL"));
 
 		SpringApplication.run(PawfectMatchApplication.class, args);
 

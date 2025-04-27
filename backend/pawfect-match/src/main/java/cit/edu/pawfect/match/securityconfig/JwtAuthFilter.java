@@ -1,7 +1,9 @@
 package cit.edu.pawfect.match.securityconfig;
 
+import cit.edu.pawfect.match.service.AuthService;
 import cit.edu.pawfect.match.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,26 +27,35 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    @Lazy
+    private AuthService authService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         final String authorizationHeader = request.getHeader("Authorization");
 
-        String email = null; // Changed from username to email
+        String email = null;
         String jwt = null;
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            email = jwtUtil.extractEmail(jwt); // Updated to extractEmail
+            email = jwtUtil.extractEmail(jwt);
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(email); // email is used here
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
             if (jwtUtil.validateToken(jwt, email)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                cit.edu.pawfect.match.entity.User user = authService.getUserByEmail(email);
+                if (user != null) {
+                    request.setAttribute("userId", user.getUserID());
+                }
             }
         }
         filterChain.doFilter(request, response);

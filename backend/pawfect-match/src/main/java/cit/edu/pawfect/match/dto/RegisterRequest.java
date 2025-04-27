@@ -23,7 +23,6 @@ public class RegisterRequest {
     @NotBlank(message = "Address is required")
     private String address;
     private String role; // Assuming this is a string in the request, will be converted to UserType
-    private String profilePicture;
     private String signUpMethod; // New field
 
    

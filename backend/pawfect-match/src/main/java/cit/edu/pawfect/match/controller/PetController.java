@@ -35,22 +35,20 @@ public class PetController {
     @PostMapping("/create")
     public ResponseEntity<?> createPet(@Valid @RequestBody CreatePetRequest petRequest) {
         try {
-            // Extract the email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-            // Find the user by email to get their userId
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> {
+                        logger.error("User not found with email: {}", email);
+                        return new RuntimeException("User not found with email: " + email);
+                    });
 
-            // Create the pet
             Pet savedPet = petService.createPet(user.getUserID(), petRequest);
-
-            // Return the pet ID and a success message
             Map<String, String> response = new HashMap<>();
             response.put("petId", savedPet.getPetId());
             response.put("message", "Pet created successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.error("Error creating pet: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while creating the pet: " + e.getMessage());
@@ -61,32 +59,16 @@ public class PetController {
     @PostMapping("/{petId}/photos")
     public ResponseEntity<?> addPhoto(@PathVariable String petId, @RequestParam("file") MultipartFile file) {
         try {
-            // Extract the email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-            // Find the user by email to get their userId
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-
-            // Verify that the pet belongs to the user
-            petService.getPetsByUserId(user.getUserID()).stream()
-                    .filter(p -> p.getPetId().equals(petId))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Pet not found or does not belong to the user"));
-
-            // Validate the file
             validateFile(file);
-
-            // Add the photo
-            Photo savedPhoto = petService.addPhoto(petId, file);
-
-            // Return the photo ID and a success message
+            Photo savedPhoto = petService.addPhoto(petId, email, file);
             Map<String, String> response = new HashMap<>();
             response.put("photoId", savedPhoto.getPhotoId());
             response.put("url", savedPhoto.getUrl());
             response.put("message", "Photo added successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.error("Error adding photo for petId: {}: {}", petId, e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while adding the photo: " + e.getMessage());
@@ -94,23 +76,56 @@ public class PetController {
         }
     }
 
-    // File validation method
+    @PutMapping("/photos/{photoId}")
+    public ResponseEntity<?> updatePhoto(@PathVariable String photoId, @RequestParam("file") MultipartFile file) {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            validateFile(file);
+            Photo updatedPhoto = petService.updatePetPhoto(photoId, email, file);
+            Map<String, String> response = new HashMap<>();
+            response.put("photoId", updatedPhoto.getPhotoId());
+            response.put("url", updatedPhoto.getUrl());
+            response.put("message", "Photo updated successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error updating photo with ID: {}: {}", photoId, e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred while updating the photo: " + e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
+        }
+    }
+
+    @DeleteMapping("/photos/{photoId}")
+    public ResponseEntity<?> deletePhoto(@PathVariable String photoId) {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            petService.deletePetPhoto(photoId, email);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Photo deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error deleting photo with ID: {}: {}", photoId, e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred while deleting the photo: " + e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
+        }
+    }
+
     private void validateFile(MultipartFile file) {
-        // Check if the file is empty
         if (file == null || file.isEmpty()) {
             logger.error("File upload failed: File is empty");
             throw new IllegalArgumentException("File is empty. Please upload a valid file.");
         }
 
-        // Validate file type (JPEG or PNG)
         String contentType = file.getContentType();
         if (contentType == null || !isValidImageType(contentType)) {
             logger.error("File upload failed: Invalid file type - {}", contentType);
             throw new IllegalArgumentException("Invalid file type. Only JPEG and PNG files are allowed.");
         }
 
-        // Validate file size (e.g., max 5MB)
-        long maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+        long maxFileSize = 5 * 1024 * 1024; // 5MB
         if (file.getSize() > maxFileSize) {
             logger.error("File upload failed: File size exceeds 5MB - {} bytes", file.getSize());
             throw new IllegalArgumentException("File size exceeds the limit of 5MB.");
@@ -119,7 +134,6 @@ public class PetController {
         logger.info("File validation passed: type={}, size={} bytes", contentType, file.getSize());
     }
 
-    // Helper method to check if the file is a JPEG or PNG
     private boolean isValidImageType(String contentType) {
         return contentType.equals("image/jpeg") || contentType.equals("image/png");
     }
@@ -127,17 +141,17 @@ public class PetController {
     @GetMapping("/my-pets")
     public ResponseEntity<?> getMyPets() {
         try {
-            // Extract the email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-            // Find the user by email to get their userId
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> {
+                        logger.error("User not found with email: {}", email);
+                        return new RuntimeException("User not found with email: " + email);
+                    });
 
-            // Retrieve the user's pets
             List<Pet> pets = petService.getPetsByUserId(user.getUserID());
             return ResponseEntity.ok(pets);
         } catch (Exception e) {
+            logger.error("Error retrieving pets: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while retrieving pets: " + e.getMessage());
@@ -148,23 +162,25 @@ public class PetController {
     @GetMapping("/{petId}/photos")
     public ResponseEntity<?> getPetPhotos(@PathVariable String petId) {
         try {
-            // Extract the email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
-            // Find the user by email to get their userId
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> {
+                        logger.error("User not found with email: {}", email);
+                        return new RuntimeException("User not found with email: " + email);
+                    });
 
-            // Verify that the pet belongs to the user
             petService.getPetsByUserId(user.getUserID()).stream()
                     .filter(p -> p.getPetId().equals(petId))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Pet not found or does not belong to the user"));
+                    .orElseThrow(() -> {
+                        logger.error("Pet not found or unauthorized: {}", petId);
+                        return new RuntimeException("Pet not found or does not belong to the user");
+                    });
 
-            // Retrieve the pet's photos
             List<Photo> photos = petService.getPhotosByPetId(petId);
             return ResponseEntity.ok(photos);
         } catch (Exception e) {
+            logger.error("Error retrieving photos for petId: {}: {}", petId, e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while retrieving photos: " + e.getMessage());
@@ -175,28 +191,28 @@ public class PetController {
     @PutMapping("/update/{petId}")
     public ResponseEntity<?> updatePet(@PathVariable String petId, @Valid @RequestBody UpdatePetRequest request) {
         try {
-            // Validate that the name is provided and not empty
             if (request.getName() == null || request.getName().trim().isEmpty()) {
+                logger.error("Pet name is required for petId: {}", petId);
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("status", "error");
                 errorResponse.put("message", "Pet name is required");
                 return ResponseEntity.status(400).body(errorResponse);
             }
 
-            // Get the authenticated user's email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> {
+                        logger.error("User not found with email: {}", email);
+                        return new RuntimeException("User not found with email: " + email);
+                    });
 
-            // Update the pet
             Pet updatedPet = petService.updatePet(petId, user.getUserID(), request);
-
-            // Prepare the response
             Map<String, String> response = new HashMap<>();
             response.put("petId", updatedPet.getPetId());
             response.put("message", "Pet updated successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.error("Error updating petId: {}: {}", petId, e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while updating the pet: " + e.getMessage());
@@ -207,19 +223,19 @@ public class PetController {
     @DeleteMapping("/delete/{petId}")
     public ResponseEntity<?> deletePet(@PathVariable String petId) {
         try {
-            // Get the authenticated user's email from the JWT token
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> {
+                        logger.error("User not found with email: {}", email);
+                        return new RuntimeException("User not found with email: " + email);
+                    });
 
-            // Delete the pet
             petService.deletePet(petId, user.getUserID());
-
-            // Prepare the response
             Map<String, String> response = new HashMap<>();
             response.put("message", "Pet deleted successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            logger.error("Error deleting petId: {}: {}", petId, e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while deleting the pet: " + e.getMessage());

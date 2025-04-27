@@ -4,22 +4,27 @@ import cit.edu.pawfect.match.dto.CreatePetRequest;
 import cit.edu.pawfect.match.dto.UpdatePetRequest;
 import cit.edu.pawfect.match.entity.Pet;
 import cit.edu.pawfect.match.entity.Photo;
+import cit.edu.pawfect.match.entity.User;
 import cit.edu.pawfect.match.repository.PetRepository;
 import cit.edu.pawfect.match.repository.PhotoRepository;
 import cit.edu.pawfect.match.repository.UserRepository;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class PetService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PetService.class);
 
     @Autowired
     private PetRepository petRepository;
@@ -30,9 +35,59 @@ public class PetService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private Cloudinary cloudinary;
+
+    // Sanitize file name for Cloudinary public_id
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null) return "unnamed_" + UUID.randomUUID().toString().substring(0, 8);
+        // Remove extension, invalid characters, and trim
+        String name = fileName.replaceFirst("[.][^.]+$", "") // Remove extension
+                .replaceAll("[^a-zA-Z0-9_-]", "_") // Replace invalid chars with _
+                .replaceAll("_+", "_") // Replace multiple _ with single _
+                .trim();
+        return name.isEmpty() ? "unnamed_" + UUID.randomUUID().toString().substring(0, 8) : name;
+    }
+
+    private String getUniquePublicId(String basePublicId, String petId) throws IOException {
+        String publicId = basePublicId;
+        int suffix = 0;
+        int maxRetries = 3;
+        while (true) {
+            for (int attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    logger.info("Checking Cloudinary public_id: {}, attempt: {}", publicId, attempt);
+                    cloudinary.api().resource(publicId, ObjectUtils.asMap("resource_type", "image"));
+                    logger.info("Found existing public_id: {}", publicId);
+                    suffix++;
+                    publicId = basePublicId + "_" + suffix;
+                    break; // Found existing, try next suffix
+                } catch (Exception e) {
+                    if (e.getMessage().contains("not found")) {
+                        logger.info("Public_id available: {}", publicId);
+                        return publicId; // Available, use it
+                    }
+                    logger.error("Error checking Cloudinary public_id: {}, attempt: {}, error: {}", publicId, attempt, e.getMessage());
+                    if (attempt == maxRetries) {
+                        throw new IOException("Failed to verify public_id after " + maxRetries + " attempts: " + e.getMessage());
+                    }
+                    try {
+                        Thread.sleep(500); // Wait before retry
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Interrupted during public_id check: " + ie.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
     public Pet createPet(String userId, CreatePetRequest petRequest) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> {
+                    logger.error("User not found with ID: {}", userId);
+                    return new RuntimeException("User not found with ID: " + userId);
+                });
 
         Pet pet = new Pet();
         pet.setUserId(userId);
@@ -49,58 +104,86 @@ public class PetService {
         pet.setPedigreeInfo(petRequest.getPedigreeInfo());
         pet.setHealthStatus(petRequest.getHealthStatus());
 
-        return petRepository.save(pet);
+        Pet savedPet = petRepository.save(pet);
+        logger.info("Created pet with ID: {} for userId: {}", savedPet.getPetId(), userId);
+        return savedPet;
     }
 
-    public Photo addPhoto(String petId, MultipartFile file) {
-        petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + petId));
+    public Photo addPhoto(String petId, String authenticatedEmail, MultipartFile file) throws IOException {
+        logger.info("Adding photo for petId: {} by email: {}", petId, authenticatedEmail);
 
-        // Generate a unique file name
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        String uploadDir = "uploads/pet-photos/"; // Directory to store photos
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", petId);
+                    return new RuntimeException("Pet not found with ID: " + petId);
+                });
 
-        try {
-            // Create the upload directory if it doesn't exist
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+        User user = userRepository.findByEmail(authenticatedEmail)
+                .orElseThrow(() -> {
+                    logger.error("User not found with email: {}", authenticatedEmail);
+                    return new RuntimeException("User not found with email: " + authenticatedEmail);
+                });
 
-            // Save the file to the server
-            Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, file.getBytes());
-
-            // Create a Photo entity and save it to the database
-            Photo photo = new Photo();
-            photo.setPetId(petId);
-            photo.setUrl(filePath.toString());
-
-            return photoRepository.save(photo);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to upload photo: " + e.getMessage());
+        if (!pet.getUserId().equals(user.getUserID())) {
+            logger.warn("Unauthorized photo upload for petId: {} by email: {}", petId, authenticatedEmail);
+            throw new RuntimeException("You are not authorized to add photos for this pet");
         }
+
+        String fileName = sanitizeFileName(file.getOriginalFilename());
+        String publicId = getUniquePublicId("pawfectmatch/pets/" + fileName, petId);
+
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "folder", "pawfectmatch/pets",
+                        "public_id", publicId,
+                        "transformation", new com.cloudinary.Transformation()
+                                .width(800).height(800).crop("limit")
+                ));
+
+        Photo photo = new Photo();
+        photo.setPhotoId(UUID.randomUUID().toString());
+        photo.setPetId(petId);
+        photo.setUrl((String) uploadResult.get("secure_url"));
+        photo.setCloudinaryPublicId((String) uploadResult.get("public_id"));
+
+        Photo savedPhoto = photoRepository.save(photo);
+        logger.info("Added photo with ID: {} for petId: {}, public_id: {}", savedPhoto.getPhotoId(), petId, publicId);
+        return savedPhoto;
     }
 
     public List<Pet> getPetsByUserId(String userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                .orElseThrow(() -> {
+                    logger.error("User not found with ID: {}", userId);
+                    return new RuntimeException("User not found with ID: " + userId);
+                });
 
-        return petRepository.findByUserId(userId);
+        List<Pet> pets = petRepository.findByUserId(userId);
+        logger.info("Retrieved {} pets for userId: {}", pets.size(), userId);
+        return pets;
     }
 
     public List<Photo> getPhotosByPetId(String petId) {
         petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + petId));
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", petId);
+                    return new RuntimeException("Pet not found with ID: " + petId);
+                });
 
-        return photoRepository.findByPetId(petId);
+        List<Photo> photos = photoRepository.findByPetId(petId);
+        logger.info("Retrieved {} photos for petId: {}", photos.size(), petId);
+        return photos;
     }
 
     public Pet updatePet(String petId, String userId, UpdatePetRequest request) {
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + petId));
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", petId);
+                    return new RuntimeException("Pet not found with ID: " + petId);
+                });
 
         if (!pet.getUserId().equals(userId)) {
+            logger.warn("Unauthorized update for petId: {} by userId: {}", petId, userId);
             throw new RuntimeException("You are not authorized to update this pet");
         }
 
@@ -141,28 +224,44 @@ public class PetService {
             pet.setHealthStatus(request.getHealthStatus());
         }
 
-        return petRepository.save(pet);
+        Pet updatedPet = petRepository.save(pet);
+        logger.info("Updated pet with ID: {}", petId);
+        return updatedPet;
     }
 
     public void deletePet(String petId, String userId) {
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + petId));
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", petId);
+                    return new RuntimeException("Pet not found with ID: " + petId);
+                });
 
         if (!pet.getUserId().equals(userId)) {
+            logger.warn("Unauthorized delete for petId: {} by userId: {}", petId, userId);
             throw new RuntimeException("You are not authorized to delete this pet");
         }
 
+        List<Photo> photos = photoRepository.findByPetId(petId);
+        for (Photo photo : photos) {
+            deletePhotoFromCloudinary(photo);
+        }
         photoRepository.deleteByPetId(petId);
         petRepository.deleteById(petId);
+        logger.info("Deleted pet with ID: {}", petId);
     }
 
     public List<Pet> getAllPets() {
-        return petRepository.findAll();
+        List<Pet> pets = petRepository.findAll();
+        logger.info("Retrieved {} pets", pets.size());
+        return pets;
     }
 
     public Pet adminUpdatePet(String petId, UpdatePetRequest request) {
         Pet pet = petRepository.findById(petId)
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + petId));
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", petId);
+                    return new RuntimeException("Pet not found with ID: " + petId);
+                });
 
         if (request.getName() != null && !request.getName().trim().isEmpty()) {
             pet.setName(request.getName());
@@ -201,155 +300,162 @@ public class PetService {
             pet.setHealthStatus(request.getHealthStatus());
         }
 
-        return petRepository.save(pet);
+        Pet updatedPet = petRepository.save(pet);
+        logger.info("Admin updated pet with ID: {}", petId);
+        return updatedPet;
     }
 
     public void adminDeletePet(String petId) {
         if (!petRepository.existsById(petId)) {
+            logger.error("Pet not found with ID: {}", petId);
             throw new RuntimeException("Pet not found with ID: " + petId);
         }
 
+        List<Photo> photos = photoRepository.findByPetId(petId);
+        for (Photo photo : photos) {
+            deletePhotoFromCloudinary(photo);
+        }
         photoRepository.deleteByPetId(petId);
         petRepository.deleteById(petId);
+        logger.info("Admin deleted pet with ID: {}", petId);
     }
 
-    public Photo updatePetPhoto(String photoId, String userId, MultipartFile file) {
-        // Verify the photo exists
+    public Photo updatePetPhoto(String photoId, String authenticatedEmail, MultipartFile file) throws IOException {
+        logger.info("Updating photo with ID: {} by email: {}", photoId, authenticatedEmail);
+    
         Photo photo = photoRepository.findById(photoId)
-                .orElseThrow(() -> new RuntimeException("Photo not found with ID: " + photoId));
-
-        // Verify the pet exists and belongs to the user
+                .orElseThrow(() -> {
+                    logger.error("Photo not found with ID: {}", photoId);
+                    return new RuntimeException("Photo not found with ID: " + photoId);
+                });
+    
         Pet pet = petRepository.findById(photo.getPetId())
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + photo.getPetId()));
-
-        if (!pet.getUserId().equals(userId)) {
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", photo.getPetId());
+                    return new RuntimeException("Pet not found with ID: " + photo.getPetId());
+                });
+    
+        User user = userRepository.findByEmail(authenticatedEmail)
+                .orElseThrow(() -> {
+                    logger.error("User not found with email: {}", authenticatedEmail);
+                    return new RuntimeException("User not found with email: " + authenticatedEmail);
+                });
+    
+        if (!pet.getUserId().equals(user.getUserID())) {
+            logger.warn("Unauthorized photo update for photoId: {} by email: {}", photoId, authenticatedEmail);
             throw new RuntimeException("You are not authorized to update this pet's photo");
         }
-
-        // Delete the old file (if it exists)
-        String oldFilePath = photo.getUrl();
-        if (oldFilePath != null && !oldFilePath.isEmpty()) {
-            try {
-                Path oldPath = Paths.get(oldFilePath);
-                if (Files.exists(oldPath)) {
-                    Files.delete(oldPath);
-                }
-            } catch (IOException e) {
-                // Log the error but continue with the update
-                System.err.println("Failed to delete old photo: " + e.getMessage());
-            }
-        }
-
-        // Generate a unique file name for the new file
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        String uploadDir = "uploads/pet-photos/"; // Directory to store photos
-
-        try {
-            // Create the upload directory if it doesn't exist
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            // Save the new file to the server
-            Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, file.getBytes());
-
-            // Update the Photo entity with the new file path
-            photo.setUrl(filePath.toString());
-            return photoRepository.save(photo);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to upload new photo: " + e.getMessage());
-        }
+    
+        deletePhotoFromCloudinary(photo);
+    
+        String fileName = sanitizeFileName(file.getOriginalFilename()); // e.g., "dog"
+        String basePublicId = "pawfectmatch/pets/" + fileName; // e.g., "pawfectmatch/pets/dog"
+    
+        // Now, just let getUniquePublicId handle all collision avoidance
+        String publicId = getUniquePublicId(basePublicId, pet.getPetId());
+    
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "folder", "pawfectmatch/pets",
+                        "public_id", publicId,
+                        "transformation", new com.cloudinary.Transformation()
+                                .width(800).height(800).crop("limit")
+                ));
+    
+        photo.setUrl((String) uploadResult.get("secure_url"));
+        photo.setCloudinaryPublicId((String) uploadResult.get("public_id"));
+    
+        Photo updatedPhoto = photoRepository.save(photo);
+        logger.info("Updated photo with ID: {} for petId: {}, public_id: {}", photoId, photo.getPetId(), publicId);
+        return updatedPhoto;
     }
+    
+    public void deletePetPhoto(String photoId, String authenticatedEmail) {
+        logger.info("Deleting photo with ID: {} by email: {}", photoId, authenticatedEmail);
 
-    public void deletePetPhoto(String photoId, String userId) {
         Photo photo = photoRepository.findById(photoId)
-                .orElseThrow(() -> new RuntimeException("Photo not found with ID: " + photoId));
+                .orElseThrow(() -> {
+                    logger.error("Photo not found with ID: {}", photoId);
+                    return new RuntimeException("Photo not found with ID: " + photoId);
+                });
 
         Pet pet = petRepository.findById(photo.getPetId())
-                .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + photo.getPetId()));
+                .orElseThrow(() -> {
+                    logger.error("Pet not found with ID: {}", photo.getPetId());
+                    return new RuntimeException("Pet not found with ID: " + photo.getPetId());
+                });
 
-        if (!pet.getUserId().equals(userId)) {
+        User user = userRepository.findByEmail(authenticatedEmail)
+                .orElseThrow(() -> {
+                    logger.error("User not found with email: {}", authenticatedEmail);
+                    return new RuntimeException("User not found with email: " + authenticatedEmail);
+                });
+
+        if (!pet.getUserId().equals(user.getUserID())) {
+            logger.warn("Unauthorized photo delete for photoId: {} by email: {}", photoId, authenticatedEmail);
             throw new RuntimeException("You are not authorized to delete this pet's photo");
         }
 
-        // Delete the file from the server (if it exists)
-        String filePath = photo.getUrl();
-        if (filePath != null && !filePath.isEmpty()) {
-            try {
-                Path path = Paths.get(filePath);
-                if (Files.exists(path)) {
-                    Files.delete(path);
-                }
-            } catch (IOException e) {
-                // Log the error but continue with the deletion
-                System.err.println("Failed to delete photo file: " + e.getMessage());
-            }
-        }
-
+        deletePhotoFromCloudinary(photo);
         photoRepository.delete(photo);
+        logger.info("Deleted photo with ID: {}", photoId);
     }
 
-    public Photo adminUpdatePetPhoto(String photoId, MultipartFile file) {
+    public Photo adminUpdatePetPhoto(String photoId, MultipartFile file) throws IOException {
+        logger.info("Admin updating photo with ID: {}", photoId);
+
         Photo photo = photoRepository.findById(photoId)
-                .orElseThrow(() -> new RuntimeException("Photo not found with ID: " + photoId));
+                .orElseThrow(() -> {
+                    logger.error("Photo not found with ID: {}", photoId);
+                    return new RuntimeException("Photo not found with ID: " + photoId);
+                });
 
-        // Delete the old file (if it exists)
-        String oldFilePath = photo.getUrl();
-        if (oldFilePath != null && !oldFilePath.isEmpty()) {
-            try {
-                Path oldPath = Paths.get(oldFilePath);
-                if (Files.exists(oldPath)) {
-                    Files.delete(oldPath);
-                }
-            } catch (IOException e) {
-                // Log the error but continue with the update
-                System.err.println("Failed to delete old photo: " + e.getMessage());
-            }
-        }
+        deletePhotoFromCloudinary(photo);
 
-        // Generate a unique file name for the new file
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        String uploadDir = "uploads/pet-photos/"; // Directory to store photos
+        String fileName = sanitizeFileName(file.getOriginalFilename());
+        String publicId = getUniquePublicId("pawfectmatch/pets/" + fileName, photo.getPetId());
 
-        try {
-            // Create the upload directory if it doesn't exist
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap(
+                        "folder", "pawfectmatch/pets",
+                        "public_id", publicId,
+                        "transformation", new com.cloudinary.Transformation()
+                                .width(800).height(800).crop("limit")
+                ));
 
-            // Save the new file to the server
-            Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, file.getBytes());
+        photo.setUrl((String) uploadResult.get("secure_url"));
+        photo.setCloudinaryPublicId((String) uploadResult.get("public_id"));
 
-            // Update the Photo entity with the new file path
-            photo.setUrl(filePath.toString());
-            return photoRepository.save(photo);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to upload new photo: " + e.getMessage());
-        }
+        Photo updatedPhoto = photoRepository.save(photo);
+        logger.info("Admin updated photo with ID: {} for petId: {}, public_id: {}", photoId, photo.getPetId(), publicId);
+        return updatedPhoto;
     }
 
     public void adminDeletePetPhoto(String photoId) {
+        logger.info("Admin deleting photo with ID: {}", photoId);
+
         Photo photo = photoRepository.findById(photoId)
-                .orElseThrow(() -> new RuntimeException("Photo not found with ID: " + photoId));
+                .orElseThrow(() -> {
+                    logger.error("Photo not found with ID: {}", photoId);
+                    return new RuntimeException("Photo not found with ID: " + photoId);
+                });
 
-        // Delete the file from the server (if it exists)
-        String filePath = photo.getUrl();
-        if (filePath != null && !filePath.isEmpty()) {
-            try {
-                Path path = Paths.get(filePath);
-                if (Files.exists(path)) {
-                    Files.delete(path);
-                }
-            } catch (IOException e) {
-                // Log the error but continue with the deletion
-                System.err.println("Failed to delete photo file: " + e.getMessage());
-            }
-        }
-
+        deletePhotoFromCloudinary(photo);
         photoRepository.delete(photo);
+        logger.info("Admin deleted photo with ID: {}", photoId);
+    }
+
+    private void deletePhotoFromCloudinary(Photo photo) {
+        if (photo.getCloudinaryPublicId() != null) {
+            try {
+                cloudinary.uploader().destroy(photo.getCloudinaryPublicId(), ObjectUtils.emptyMap());
+                logger.info("Deleted Cloudinary photo with public_id: {}", photo.getCloudinaryPublicId());
+            } catch (IOException e) {
+                logger.error("Failed to delete Cloudinary photo with public_id: {}: {}",
+                             photo.getCloudinaryPublicId(), e.getMessage());
+            }
+        } else {
+            logger.info("No Cloudinary public_id for photoId: {}, skipping Cloudinary deletion", photo.getPhotoId());
+        }
     }
 }
