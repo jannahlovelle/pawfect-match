@@ -1,9 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.PawfectMatch" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorOnBackground">@color/colorOnBackground</item>
+
+        <!-- Fix the status bar -->
+        <item name="android:statusBarColor">@color/white</item> <!-- dark icons for light background -->
     </style>
 
     <style name="Theme.PawfectMatch" parent="Base.Theme.PawfectMatch" />
+
+    <style name="Theme.PawfectMatch.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.PawfectMatch.AppBarOverlay" parent="ThemeOverlay.AppCompat.DayNight.ActionBar" />
+    <style name="Theme.PawfectMatch.PopupOverlay" parent="ThemeOverlay.AppCompat.DayNight" />
+
 </resources>
