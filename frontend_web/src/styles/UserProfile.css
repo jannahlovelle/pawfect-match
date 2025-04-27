@@ -1,0 +1,151 @@
+.home-wrapper {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+  }
+  
+  
+  .sidebar {
+    width: 16.6667%;
+    background-color: #F9F9F9;
+    padding: 1.5rem;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .sidebar.right {
+    border-left: 1px solid #ddd;
+  }
+  
+  .sidebar a {
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .sidebar a:hover {
+    color: #c05621;
+  }
+  
+  .center-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 0 1rem; /* Spacing from the top */
+    justify-content: flex-start;
+    overflow-y: auto;
+    align-items: flex-start; /* Optional: center horizontally */
+}
+  
+  .home-placeholder {
+    background-color: #f3f3f3;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    font-size: 1.25rem;
+    color: #444;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+
+  .profile-container {
+    max-width: 1000px;
+    margin: 10px auto 0 auto;
+    background-color: #f6f6f6;
+  }
+  
+  .profile-content {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  
+  .profile-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 180px;
+  }
+  
+  .profile-right {
+    flex: 2;
+    min-width: 250px;
+  }
+  
+  .profile-pic {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    transition: transform 0.3s ease;
+  }
+
+  .profile-pic:hover {
+    transform: scale(1.05);
+  }
+  
+  .edit-profile-link {
+    margin-top: 12px;
+    color: #3498db;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .profile-info h2 {
+    color: rgba(0, 0, 0, 0.832);
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  .profile-info p {
+    color: #333;
+    margin: 6px 0;
+    font-size: 14px;
+  }
+  
+  .divider {
+    margin: 1.5rem 0;
+    border: 0;
+    border-top: 1px solid #ccc;
+  }
+  
+  .pet-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  
+  .add-pet-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border: 2px dashed #aaa;
+    height: 160px;
+    cursor: pointer;
+  }
+  
+  .add-pet-btn {
+    background-color: #7c2d12;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+  
+  .pet-image {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+  
