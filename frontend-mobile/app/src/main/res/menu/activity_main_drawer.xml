@@ -12,10 +12,16 @@
             android:id="@+id/nav_profile"
             android:icon="@drawable/baseline_person_24"
             android:title="@string/menu_profile" />
+
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/menu_slideshow" />
+
+        <item
+            android:id="@+id/nav_pets"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="My Pets"/>
 
         <item
             android:id="@+id/nav_settings"

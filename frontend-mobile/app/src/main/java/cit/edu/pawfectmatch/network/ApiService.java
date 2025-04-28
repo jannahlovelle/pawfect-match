@@ -1,8 +1,10 @@
 package cit.edu.pawfectmatch.network;
 
 
+import java.util.List;
 import java.util.Map;
 
+import cit.edu.pawfectmatch.backendstuff.Pet;
 import cit.edu.pawfectmatch.backendstuff.UserProfile;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -41,9 +43,19 @@ public interface ApiService {
     @DELETE("/users/delete/me")
     Call<Map<String, String>> deleteUser(@Header("Authorization") String token);
 
+    @POST("pets/create")
+    Call<Map<String, String>> createPet(@Header("Authorization") String authToken, @Body CreatePetRequest petRequest);
+    @GET("pets/my-pets")
+    Call<List<Pet>> getMyPets(@Header("Authorization") String authToken);
 
-
-
+// For future use:
+// @Multipart
+// @POST("api/pets/{petId}/photo")
+// Call<Void> uploadPetPhoto(
+//     @Header("Authorization") String token,
+//     @Path("petId") String petId,
+//     @Part MultipartBody.Part file
+// );
 }
 
 // Response model for user data (used by getUserByEmail)

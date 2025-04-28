@@ -24,9 +24,25 @@
         tools:layout="@layout/fragment_slideshow" />
 
     <fragment
+        android:id="@+id/nav_pets"
+        android:name="cit.edu.pawfectmatch.ui.slideshow.PetFragment"
+        android:label="My Pets"
+        tools:layout="@layout/fragment_pet">
+        <action
+            android:id="@+id/action_nav_pets_to_nav_addPetFragment"
+            app:destination="@id/nav_addPetFragment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/nav_settings"
         android:name="cit.edu.pawfectmatch.ui.settings.SettingsFragment"
         android:label="Settings"
         tools:layout="@layout/fragment_settings"/>
+
+<!--    PETS-->
+    <fragment
+        android:id="@+id/nav_addPetFragment"
+        android:name="cit.edu.pawfectmatch.ui.slideshow.AddPetFragment"
+        tools:layout="@layout/fragment_add_pet" />
 
 </navigation>

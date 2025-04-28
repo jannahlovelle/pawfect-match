@@ -23,7 +23,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sign Up - Step 2"
+                android:text="@string/sign_up"
                 android:textSize="32sp"
                 android:gravity="center"
                 android:layout_marginBottom="24dp" />
@@ -36,14 +36,14 @@
                 android:src="@drawable/defaultprofile"
                 android:background="@drawable/circle_background"
                 android:scaleType="centerCrop"
-                android:contentDescription="Profile Picture" />
+                android:contentDescription="@string/profile_picture" />
 
             <TextView
                 android:id="@+id/selectProfilePic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Upload Profile Picture"
+                android:text="@string/upload_profile_picture"
                 android:textColor="@color/maroon"
                 android:textSize="14sp"
                 android:layout_marginBottom="24dp" />
@@ -58,7 +58,7 @@
                 android:drawableStart="@drawable/baseline_lock_24"
                 android:drawableEnd="@drawable/visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
                 android:drawablePadding="10dp"
-                android:hint="Password"
+                android:hint="@string/password"
                 android:inputType="textPassword"
                 android:padding="8dp" />
 
@@ -72,7 +72,7 @@
                 android:drawableStart="@drawable/baseline_lock_24"
                 android:drawableEnd="@drawable/visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
                 android:drawablePadding="10dp"
-                android:hint="Confirm Password"
+                android:hint="@string/confirm_password"
                 android:inputType="textPassword"
                 android:padding="8dp" />
 
@@ -81,7 +81,7 @@
                 android:id="@+id/signupButton"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:text="Sign Up"
+                android:text="@string/sign_up"
                 android:backgroundTint="@color/maroon"
                 android:textColor="@android:color/white"
                 android:textSize="18sp" />
@@ -91,7 +91,7 @@
                 android:id="@+id/loginLinkText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Already have an account? Login here"
+                android:text="@string/already_have_an_account_login_here"
                 android:textAlignment="center"
                 android:textColor="#F44336"
                 android:layout_marginTop="16dp"
