@@ -2,10 +2,12 @@ package cit.edu.pawfectmatch;
 
 import static cit.edu.pawfectmatch.LoginActivity.BASE_URL;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Menu;
 import android.widget.ImageView;
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private DrawerLayout drawer;
 
+    @SuppressLint("WrongConstant")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
         navNameHolder = headerView.findViewById(R.id.nav_header_name);
         navEmailHolder = headerView.findViewById(R.id.nav_header_email);
         profileImageView = headerView.findViewById(R.id.nav_profile_pic);
+
+        DrawerLayout.LayoutParams params = (DrawerLayout.LayoutParams) navigationView.getLayoutParams();
+        params.gravity = Gravity.START; // Use Gravity.START for left-side drawer
+        navigationView.setLayoutParams(params);
 
         // User Data Passing START
         SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);

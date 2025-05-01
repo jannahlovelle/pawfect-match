@@ -24,6 +24,10 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
@@ -46,13 +50,14 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView googleBtn;
     private ProgressBar loginProgress;
 
-    private FrameLayout loginButtonWrapper, signupButtonWrapper;
-    private TextView loginButtonText, signupButtonText;
-    private ProgressBar loginButtonSpinner, signupButtonSpinner;
-    public static final String BASE_URL = "http://192.168.1.6:8080/";
+    private FrameLayout loginButtonWrapper, signupButtonWrapper, googleButtonWrapper;
+    private TextView loginButtonText, signupButtonText, googleButtonText;
+    private ProgressBar loginButtonSpinner, signupButtonSpinner, googleButtonSpinner;
+    public static final String BASE_URL = "http://192.168.1.7:8080/";
     private ApiService apiService;
 
     private GoogleSignInClient gsc;
+    private static int RC_SIGN_IN=1000;
 
     @SuppressLint({"MissingInflatedId", "ClickableViewAccessibility"})
     @Override
@@ -80,6 +85,12 @@ public class LoginActivity extends AppCompatActivity {
         signupButtonText = findViewById(R.id.signup_button_text);
         signupButtonSpinner = findViewById(R.id.signup_button_spinner);
 
+        googleButtonWrapper = findViewById(R.id.google_button_wrapper);
+        googleButtonText = findViewById(R.id.google_button_text);
+        googleButtonSpinner = findViewById(R.id.google_button_spinner);
+
+
+
         password.setOnTouchListener((v, event) -> {
             final int DRAWABLE_RIGHT = 2;
             if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -101,13 +112,20 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         });
 
-        // Google sign-in setup
+                // Google sign-in setup
+        //        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        //                .requestEmail()
+        //                .build();
+        //        gsc = GoogleSignIn.getClient(this, gso);
+
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)) // Add this to request Firebase ID token
                 .requestEmail()
                 .build();
         gsc = GoogleSignIn.getClient(this, gso);
 
-        // Retrofit setup
+                // Retrofit setup
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().setLenient().create()))
@@ -143,43 +161,38 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(signUpIntent);
             overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
+
+        googleButtonWrapper.setOnClickListener(v -> {
+            googleButtonSpinner.setVisibility(View.VISIBLE);
+            googleButtonText.setVisibility(View.INVISIBLE);
+            signupButtonWrapper.setEnabled(false);
+
+            signIn();
+        });
     }
 
     private void signIn() {
         Intent signInIntent = gsc.getSignInIntent();
-        startActivityForResult(signInIntent, 1000);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == 1000) {
+        if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                task.getResult(ApiException.class);
-                navigateToHomeActivity();
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                Log.d("GoogleSignIn", "Google Sign-In successful, ID token: " + account.getIdToken().substring(0, 20) + "...");
+//                firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
+                Log.e("GoogleSignIn", "Google Sign-In failed: " + e.getStatusCode() + " " + e.getMessage());
                 errtxt.setVisibility(TextView.VISIBLE);
                 errtxt.setText("Google Sign-In failed. Please try again.");
-                Toast.makeText(getApplicationContext(), "Google Sign-In failed. Please try again.", Toast.LENGTH_SHORT).show();
-                Log.e("GoogleSignIn", "Error: " + e.getStatusCode() + " " + e.getMessage());
+                Toast.makeText(this, "Google Sign-In failed. Please try again.", Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        signupButtonSpinner.setVisibility(View.GONE);
-        signupButtonText.setVisibility(View.VISIBLE);
-        signupButtonWrapper.setEnabled(true);
-    }
-
-    private void navigateToHomeActivity() {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
-        finish();
     }
 
     private void loginUser(String email, String password) {
@@ -277,5 +290,21 @@ public class LoginActivity extends AppCompatActivity {
                 Log.e("Login", "Network Failure: " + t.getMessage());
             }
         });
+    }
+
+//    UI METHODS
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        signupButtonSpinner.setVisibility(View.GONE);
+        signupButtonText.setVisibility(View.VISIBLE);
+        signupButtonWrapper.setEnabled(true);
+    }
+
+    private void navigateToHomeActivity() {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

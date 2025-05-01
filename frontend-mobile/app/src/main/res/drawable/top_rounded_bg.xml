@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <solid android:color="#FFFFFFFF" /> <!-- Change background color here -->
+    <solid android:color="@color/opposite_icon_tint" /> <!-- Change background color here -->
 
     <corners
         android:topLeftRadius="24dp"
