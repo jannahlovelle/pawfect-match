@@ -37,7 +37,7 @@
     <string name="upload_profile_picture">Upload Profile Picture</string>
     <string name="confirm_password">Confirm Password</string>
     <string name="already_have_an_account_login_here">Already have an account? Login here</string>
-    <string name="default_web_client_id">758447998498-eqegfg9ikm3cg4vq8hvuhg8llk2h7j7h.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">117117751091-815o79fnk2shr58d54km2bpcio12fpd8.apps.googleusercontent.com</string>
 
     <string-array name="gender_options">
         <item>Select Gender</item>

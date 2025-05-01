@@ -1,70 +1,20 @@
-package cit.edu.pawfectmatch.backendstuff;
+package cit.edu.pawfectmatch.network;
 
-import com.google.gson.annotations.SerializedName;
-
-import java.io.Serializable;
-import java.util.Date;
-
-public class Pet implements Serializable {
-    @SerializedName("petId")
-    private String petId;
-
-    @SerializedName("userId")
-    private String userId;
-
-    @SerializedName("name")
+public class UpdatePetRequest {
     private String name;
-
-    @SerializedName("species")
     private String species;
-
-    @SerializedName("breed")
     private String breed;
-
-    @SerializedName("gender")
     private String gender;
-
-    @SerializedName("dateOfBirth")
-    private Date dateOfBirth;
-
-    @SerializedName("weight")
-    private double weight;
-
-    @SerializedName("color")
+    private String dateOfBirth;
+    private Double weight;
     private String color;
-
-    @SerializedName("description")
     private String description;
-
-    @SerializedName("availabilityStatus")
     private String availabilityStatus;
-
-    @SerializedName("price")
-    private double price;
-
-    @SerializedName("pedigreeInfo")
+    private Double price;
     private String pedigreeInfo;
-
-    @SerializedName("healthStatus")
     private String healthStatus;
 
     // Getters and setters
-    public String getPetId() {
-        return petId;
-    }
-
-    public void setPetId(String petId) {
-        this.petId = petId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getName() {
         return name;
     }
@@ -97,19 +47,19 @@ public class Pet implements Serializable {
         this.gender = gender;
     }
 
-    public Date getDateOfBirth() {
+    public String getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(String dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public double getWeight() {
+    public Double getWeight() {
         return weight;
     }
 
-    public void setWeight(double weight) {
+    public void setWeight(Double weight) {
         this.weight = weight;
     }
 
@@ -137,11 +87,11 @@ public class Pet implements Serializable {
         this.availabilityStatus = availabilityStatus;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
