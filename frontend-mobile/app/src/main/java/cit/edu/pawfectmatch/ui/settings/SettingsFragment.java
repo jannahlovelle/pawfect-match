@@ -18,9 +18,10 @@ import androidx.lifecycle.ViewModelProvider;
 import cit.edu.pawfectmatch.LoginActivity;
 import cit.edu.pawfectmatch.R;
 
-public class SettingsFragment extends Fragment {
+public class SettingsFragment extends Fragment implements ConfirmDeleteBottomSheet.OnDeleteConfirmedListener {
 
     private SettingsViewModel settingsViewModel;
+    private String token;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -30,12 +31,14 @@ public class SettingsFragment extends Fragment {
 
         Button deleteButton = root.findViewById(R.id.settings_deleteaccount);
 
+        SharedPreferences prefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE);
+        token = prefs.getString("jwt_token", null);
+
         deleteButton.setOnClickListener(v -> {
-            SharedPreferences prefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE);
-            String token = prefs.getString("jwt_token", null);
-            Log.e("Settings Debug","Token: "+token );
             if (token != null) {
-                settingsViewModel.deleteAccount(token);
+                // Show confirmation bottom sheet
+                ConfirmDeleteBottomSheet bottomSheet = new ConfirmDeleteBottomSheet();
+                bottomSheet.show(getChildFragmentManager(), "ConfirmDeleteBottomSheet");
             } else {
                 Toast.makeText(getContext(), "Token not found. Please log in again.", Toast.LENGTH_SHORT).show();
             }
@@ -45,7 +48,7 @@ public class SettingsFragment extends Fragment {
             if (status.startsWith("success:")) {
                 Toast.makeText(getContext(), status.substring(8), Toast.LENGTH_SHORT).show();
                 // Clear token and redirect to login
-                SharedPreferences.Editor editor = requireContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE).edit();
                 editor.remove("jwt_token");
                 editor.apply();
 
@@ -58,5 +61,12 @@ public class SettingsFragment extends Fragment {
         });
 
         return root;
+    }
+
+    @Override
+    public void onDeleteConfirmed() {
+        // Called when user confirms deletion in the bottom sheet
+        Log.d("SettingsFragment", "Delete account confirmed, token: " + token);
+        settingsViewModel.deleteAccount(token);
     }
 }

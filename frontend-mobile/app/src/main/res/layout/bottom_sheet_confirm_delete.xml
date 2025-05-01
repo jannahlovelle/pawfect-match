@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/top_rounded_bg"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/delete_warning_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Are you sure you want to delete your account?"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:paddingBottom="16dp" />
+
+    <Button
+        android:id="@+id/confirm_delete_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Yes, Delete My Account"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/google_red" />
+
+    <Button
+        android:id="@+id/cancel_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cancel"
+        android:textColor="@color/black"
+        android:backgroundTint="#9D9D9D"
+        android:layout_marginTop="12dp" />
+</LinearLayout>

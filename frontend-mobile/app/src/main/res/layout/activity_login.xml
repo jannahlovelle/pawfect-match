@@ -7,63 +7,75 @@
     android:layout_height="match_parent"
     tools:context=".LoginActivity">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.32"
+        android:scaleType="centerCrop"
+        android:src="@drawable/background__1_" />
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center_horizontal"
+        android:scaleType="centerCrop"
+        android:src="@drawable/pm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ScrollView
         android:id="@+id/scrollView2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:fillViewport="true"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/image">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/top_rounded_bg"
+            android:orientation="vertical"
             android:padding="24dp">
 
             <!-- Profile Image -->
-            <ImageView
-                android:id="@+id/image"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_marginTop="40dp"
-                android:scaleType="centerCrop"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/pm" />
 
             <!-- Error Message -->
             <TextView
                 android:id="@+id/login_errorView"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/error"
                 android:textColor="@android:color/holo_red_dark"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/image" />
+                android:visibility="gone" />
 
             <!-- Email -->
+            <TextView
+                android:id="@+id/login_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:labelFor="@+id/login_email"
+                android:text="@string/login"
+                android:textSize="30sp" />
 
             <TextView
                 android:id="@+id/login_labelEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="30dp"
                 android:labelFor="@+id/login_email"
                 android:text="@string/email"
-                android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.024"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/login_errorView" />
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/login_email"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/rounded_edittext"
@@ -71,10 +83,7 @@
                 android:drawablePadding="10dp"
                 android:hint="@string/email"
                 android:inputType="textEmailAddress"
-                android:padding="12dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/login_labelEmail" />
+                android:padding="12dp" />
 
             <!-- Password -->
             <TextView
@@ -83,44 +92,34 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:labelFor="@+id/login_email"
-                android:text="@string/email"
-                android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.024"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/login_errorView" />
+                android:text="@string/password"
+                android:textSize="20sp" />
 
             <EditText
                 android:id="@+id/login_password"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
+                android:clickable="true"
                 android:drawableStart="@drawable/baseline_lock_24"
                 android:drawableEnd="@drawable/visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
-                android:hint="@string/password"
-                android:inputType="textPassword"
-                android:padding="12dp"
                 android:drawablePadding="10dp"
-                android:importantForAccessibility="yes"
                 android:focusable="true"
-                android:clickable="true"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/login_email" />
+                android:hint="@string/password"
+                android:importantForAccessibility="yes"
+                android:inputType="textPassword"
+                android:padding="12dp" />
 
             <!-- Login Button -->
             <FrameLayout
                 android:id="@+id/login_button_wrapper"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/rounded_card_bg"
                 android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/login_password">
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/login_button_text"
@@ -144,14 +143,11 @@
             <!-- Divider -->
             <LinearLayout
                 android:id="@+id/linearLayout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="16dp"
                 android:gravity="center"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/login_button_wrapper">
+                android:orientation="horizontal">
 
                 <View
                     android:layout_width="0dp"
@@ -177,15 +173,13 @@
             <!-- Google Sign-In -->
             <FrameLayout
                 android:id="@+id/google_button_wrapper"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
                 android:background="@drawable/google_edittext"
                 android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/google_button_text"
@@ -209,15 +203,12 @@
             <!-- Sign Up -->
             <FrameLayout
                 android:id="@+id/signup_button_wrapper"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="40dp"
                 android:background="@drawable/primary_rounded_edittext"
                 android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
+                android:focusable="true">
 
                 <TextView
                     android:id="@+id/signup_button_text"
@@ -238,6 +229,6 @@
                     android:visibility="gone" />
             </FrameLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

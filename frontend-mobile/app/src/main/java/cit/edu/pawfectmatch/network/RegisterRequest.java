@@ -1,27 +1,16 @@
 package cit.edu.pawfectmatch.network;
 
-import com.google.gson.annotations.SerializedName;
-
 public class RegisterRequest {
-    @SerializedName("firstName")
     private String firstName;
-    @SerializedName("lastName")
     private String lastName;
-    @SerializedName("email")
     private String email;
-    @SerializedName("phone")
     private String phone;
-    @SerializedName("address")
     private String address;
-    @SerializedName("password")
     private String password;
-    @SerializedName("role")
     private String role;
-    @SerializedName("profilePicture")
-    private String profilePicture;
 
     public RegisterRequest(String firstName, String lastName, String email, String phone,
-                           String address, String password, String role, String profilePicture) {
+                           String address, String password, String role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -29,16 +18,21 @@ public class RegisterRequest {
         this.address = address;
         this.password = password;
         this.role = role;
-        this.profilePicture = profilePicture;
     }
 
-    // Getters
+    // Getters and setters
     public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
     public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
     public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
     public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
     public String getRole() { return role; }
-    public String getProfilePicture() { return profilePicture; }
+    public void setRole(String role) { this.role = role; }
 }

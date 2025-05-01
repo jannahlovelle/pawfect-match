@@ -8,24 +8,20 @@ public class UpdateUserRequest {
     private String email;
     private String phone;
     private String address;
-    private String profilePicture;
-
-    // Getters and Setters
-
 
     public UpdateUserRequest() {
     }
 
-    public UpdateUserRequest( String firstName, String lastName, String password, String email, String phone, String address, String profilePicture) {
+    public UpdateUserRequest(String firstName, String lastName, String password, String email, String phone, String address) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
         this.email = email;
         this.phone = phone;
         this.address = address;
-        this.profilePicture = profilePicture;
     }
 
+    // Getters and Setters
     public String getFirstName() {
         return firstName;
     }
@@ -50,11 +46,6 @@ public class UpdateUserRequest {
         return address;
     }
 
-    public String getProfilePicture() {
-        return profilePicture;
-    }
-
-
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
@@ -77,9 +68,5 @@ public class UpdateUserRequest {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public void setProfilePicture(String profilePicture) {
-        this.profilePicture = profilePicture;
     }
 }

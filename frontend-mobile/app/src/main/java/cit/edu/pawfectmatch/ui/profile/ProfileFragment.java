@@ -4,12 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,11 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
 import com.facebook.shimmer.ShimmerFrameLayout;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import cit.edu.pawfectmatch.R;
 import cit.edu.pawfectmatch.databinding.FragmentProfileBinding;
@@ -39,7 +32,7 @@ public class ProfileFragment extends Fragment {
     private String token, userId;
     private ImageView profileImageView;
     private static final int PICK_IMAGE_REQUEST = 1;
-    private String encodedImage = null;
+    private Uri profileImageUri = null;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -73,17 +66,12 @@ public class ProfileFragment extends Fragment {
 
                 String profilePic = user.getProfilePicture();
                 if (profilePic != null && !profilePic.isEmpty()) {
-                    if (isBase64(profilePic)) {
-                        byte[] imageBytes = Base64.decode(profilePic, Base64.DEFAULT);
-                        Bitmap decodedImage = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-                        profileImageView.setImageBitmap(decodedImage);
-                    } else {
-                        Glide.with(requireContext())
-                                .load(profilePic)
-                                .into(profileImageView);
-                    }
+                    // Load profile picture as a URL (backend returns Cloudinary URL)
+                    com.bumptech.glide.Glide.with(requireContext())
+                            .load(profilePic)
+                            .into(profileImageView);
                 } else {
-                    Glide.with(requireContext())
+                    com.bumptech.glide.Glide.with(requireContext())
                             .load(R.drawable.defaultprofile)
                             .into(profileImageView);
                 }
@@ -120,20 +108,16 @@ public class ProfileFragment extends Fragment {
                 binding.profileSubmtbtnText.setVisibility(View.GONE);
                 binding.profileSubmitbtnSpinner.setVisibility(View.VISIBLE);
 
-                UpdateUserRequest request = new UpdateUserRequest();
-                request.setFirstName(binding.profileEditFirstname.getText().toString());
-                request.setLastName(binding.profileEditLastname.getText().toString());
-                request.setPhone(binding.profileEditPhone.getText().toString());
-                request.setAddress(binding.profileEditAddress.getText().toString());
-                request.setEmail(binding.profileEditEmail.getText().toString());
-                request.setProfilePicture(encodedImage);
-
-                String password = binding.profileEditPassword.getText().toString();
-                if (!password.isEmpty()) {
-                    request.setPassword(password);
+                // Update profile picture first (if changed)
+                if (profileImageUri != null) {
+                    profileViewModel.updateProfilePicture(token, userId, profileImageUri, () -> {
+                        // Then update user data
+                        updateUserData();
+                    }, requireContext());
+                } else {
+                    // No profile picture change, update user data directly
+                    updateUserData();
                 }
-
-                profileViewModel.updateUserProfile(token, userId, request);
             } else {
                 Log.e("ProfileFragment", "User ID or token is null.");
                 binding.profileSubmtbtnText.setVisibility(View.VISIBLE);
@@ -154,37 +138,39 @@ public class ProfileFragment extends Fragment {
         });
 
         binding.profileCancelbtn.setOnClickListener(v -> {
+            profileImageUri = null; // Reset image selection
             exitEditMode();
         });
 
         return root;
     }
 
-    private boolean isBase64(String str) {
-        try {
-            Base64.decode(str, Base64.DEFAULT);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
+    private void updateUserData() {
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setFirstName(binding.profileEditFirstname.getText().toString());
+        request.setLastName(binding.profileEditLastname.getText().toString());
+        request.setPhone(binding.profileEditPhone.getText().toString());
+        request.setAddress(binding.profileEditAddress.getText().toString());
+        request.setEmail(binding.profileEditEmail.getText().toString());
+
+        String password = binding.profileEditPassword.getText().toString();
+        if (!password.isEmpty()) {
+            request.setPassword(password);
         }
+
+        profileViewModel.updateUserProfile(token, userId, request);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            Uri selectedImageUri = data.getData();
+            profileImageUri = data.getData();
             try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContext().getContentResolver(), selectedImageUri);
-                profileImageView.setImageBitmap(bitmap);
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-                byte[] byteArray = byteArrayOutputStream.toByteArray();
-                encodedImage = Base64.encodeToString(byteArray, Base64.DEFAULT);
-
-            } catch (IOException e) {
+                profileImageView.setImageURI(profileImageUri);
+            } catch (Exception e) {
                 Log.e("ProfileFragment", "Error loading image: " + e.getMessage());
+                Toast.makeText(getContext(), "Failed to load image", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -231,6 +217,7 @@ public class ProfileFragment extends Fragment {
         binding.profileCancelbtn.setVisibility(View.GONE);
         binding.profileEditbtn.setVisibility(View.VISIBLE);
         binding.profileProfilepic.setClickable(false);
+        profileImageUri = null; // Reset image selection
         editmode = false;
     }
 
