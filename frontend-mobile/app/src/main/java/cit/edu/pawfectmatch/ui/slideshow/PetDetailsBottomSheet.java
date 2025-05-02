@@ -1,5 +1,7 @@
 package cit.edu.pawfectmatch.ui.slideshow;
 
+import android.app.DatePickerDialog;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,8 +23,12 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.textfield.TextInputLayout;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,8 +39,8 @@ import cit.edu.pawfectmatch.network.UpdatePetRequest;
 
 public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements DeleteConfirmationBottomSheet.OnDeleteConfirmedListener {
 
-    private static final String ARG_PET = "pet";
     private static final String TAG = "PetDetailsBottomSheet";
+    private static final String ARG_PET = "pet";
     private Pet pet;
     private PetDetailsViewModel viewModel;
     private boolean isEditMode = false;
@@ -43,13 +49,21 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
     private ImageView petImage;
     private ViewPager2 photoPager;
     private TextView nameText, speciesText, breedText, birthdayText, genderText, weightText, colorText, descText, availabilityText, priceText, errorText;
+    private TextView nameLabel, speciesLabel, breedLabel, birthdayLabel, genderLabel, weightLabel, colorLabel, descLabel, availabilityLabel, priceLabel;
     private Button editButton, deleteButton;
 
     // Edit mode
-    private EditText nameEdit, breedEdit, weightEdit, colorEdit, descEdit, priceEdit, pedigreeEdit, healthEdit;
+    private EditText nameEdit, breedEdit, birthdayEdit, weightEdit, colorEdit, descEdit, priceEdit, pedigreeEdit, healthEdit;
     private AutoCompleteTextView speciesEdit, genderEdit, availabilityEdit;
+    private TextInputLayout speciesEditLayout, genderEditLayout, availabilityEditLayout, birthdayEditLayout;
+    private TextView nameEditLabel, speciesEditLabel, breedEditLabel, birthdayEditLabel, genderEditLabel, weightEditLabel, colorEditLabel, descEditLabel, availabilityEditLabel, priceEditLabel, pedigreeEditLabel, healthEditLabel;
     private Button saveButton, cancelButton;
     private ProgressBar progressBar;
+    private static final DateTimeFormatter[] DATE_FORMATTERS = {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    };
 
     public static PetDetailsBottomSheet newInstance(Pet pet) {
         PetDetailsBottomSheet fragment = new PetDetailsBottomSheet();
@@ -72,34 +86,62 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottom_sheet_pet_details, container, false);
 
+
         // Initialize view mode views
         petImage = view.findViewById(R.id.bspet_image);
         photoPager = view.findViewById(R.id.photo_pager);
+        nameLabel = view.findViewById(R.id.bspet_name_label);
         nameText = view.findViewById(R.id.bspet_name);
+        speciesLabel = view.findViewById(R.id.bspet_species_label);
         speciesText = view.findViewById(R.id.bspet_species);
+        breedLabel = view.findViewById(R.id.bspet_breed_label);
         breedText = view.findViewById(R.id.bspet_breed);
+        birthdayLabel = view.findViewById(R.id.bspet_birthday_label);
         birthdayText = view.findViewById(R.id.bspet_birthday);
+        genderLabel = view.findViewById(R.id.bspet_gender_label);
         genderText = view.findViewById(R.id.bspet_gender);
+        weightLabel = view.findViewById(R.id.bspet_weight_label);
         weightText = view.findViewById(R.id.bspet_weight);
+        colorLabel = view.findViewById(R.id.bspet_color_label);
         colorText = view.findViewById(R.id.bspet_color);
+        descLabel = view.findViewById(R.id.bspet_desc_label);
         descText = view.findViewById(R.id.bspet_desc);
+        availabilityLabel = view.findViewById(R.id.bspet_availability_label);
         availabilityText = view.findViewById(R.id.bspet_availability);
+        priceLabel = view.findViewById(R.id.bspet_price_label);
         priceText = view.findViewById(R.id.bspet_price);
         errorText = view.findViewById(R.id.bspet_error);
         editButton = view.findViewById(R.id.bspet_edit);
         deleteButton = view.findViewById(R.id.bspet_delete);
 
         // Initialize edit mode views
+        nameEditLabel = view.findViewById(R.id.bspet_name_edit_label);
         nameEdit = view.findViewById(R.id.bspet_name_edit);
+        speciesEditLayout = view.findViewById(R.id.bspet_species_layout);
+        speciesEditLabel = view.findViewById(R.id.bspet_species_edit_label);
         speciesEdit = view.findViewById(R.id.bspet_species_edit);
+        breedEditLabel = view.findViewById(R.id.bspet_breed_edit_label);
         breedEdit = view.findViewById(R.id.bspet_breed_edit);
+        birthdayEditLayout = view.findViewById(R.id.bspet_birthday_edit_layout);
+        birthdayEditLabel = view.findViewById(R.id.bspet_birthday_edit_label);
+        birthdayEdit = view.findViewById(R.id.bspet_birthday_edit);
+        genderEditLayout = view.findViewById(R.id.bspet_gender_layout);
+        genderEditLabel = view.findViewById(R.id.bspet_gender_edit_label);
         genderEdit = view.findViewById(R.id.bspet_gender_edit);
+        weightEditLabel = view.findViewById(R.id.bspet_weight_edit_label);
         weightEdit = view.findViewById(R.id.bspet_weight_edit);
+        colorEditLabel = view.findViewById(R.id.bspet_color_edit_label);
         colorEdit = view.findViewById(R.id.bspet_color_edit);
+        descEditLabel = view.findViewById(R.id.bspet_desc_edit_label);
         descEdit = view.findViewById(R.id.bspet_desc_edit);
+        availabilityEditLayout = view.findViewById(R.id.bspet_availability_layout);
+        availabilityEditLabel = view.findViewById(R.id.bspet_availability_edit_label);
         availabilityEdit = view.findViewById(R.id.bspet_availability_edit);
+        priceEditLabel = view.findViewById(R.id.bspet_price_edit_label);
         priceEdit = view.findViewById(R.id.bspet_price_edit);
+        pedigreeEditLabel = view.findViewById(R.id.bspet_pedigree_edit_label);
         pedigreeEdit = view.findViewById(R.id.bspet_pedigree_edit);
+        healthEditLabel = view.findViewById(R.id.bspet_health_edit_label);
         healthEdit = view.findViewById(R.id.bspet_health_edit);
         saveButton = view.findViewById(R.id.bspet_save);
         cancelButton = view.findViewById(R.id.bspet_cancel);
@@ -108,6 +150,33 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         setupSpinners();
         bindPetData();
         toggleEditMode(false);
+
+        // DatePickerDialog for birthday
+        birthdayEdit.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            if (pet.getDateOfBirth() != null && !pet.getDateOfBirth().isEmpty()) {
+                try {
+                    LocalDate date = LocalDate.parse(pet.getDateOfBirth(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    calendar.set(date.getYear(), date.getMonthValue() - 1, date.getDayOfMonth());
+                } catch (DateTimeParseException e) {
+                    Log.e(TAG, "Failed to parse dateOfBirth for DatePicker: " + pet.getDateOfBirth(), e);
+//                     Fallback to current date
+                }
+            }
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    requireContext(),
+                    (datePicker, selectedYear, selectedMonth, selectedDay) -> {
+                        String selectedDate = String.format(Locale.US, "%d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay);
+                        birthdayEdit.setText(selectedDate);
+                    },
+                    year, month, day
+            );
+            datePickerDialog.show();
+        });
 
         viewModel = new ViewModelProvider(this).get(PetDetailsViewModel.class);
 
@@ -188,7 +257,7 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         editButton.setOnClickListener(v -> toggleEditMode(true));
         deleteButton.setOnClickListener(v -> {
             DeleteConfirmationBottomSheet confirmation = DeleteConfirmationBottomSheet.newInstance(pet.getPetId(), pet.getName());
-            confirmation.show(getChildFragmentManager(), "DeleteConfirmationBottomSheet");
+            confirmation.show(getParentFragmentManager(), "DeleteConfirmationBottomSheet");
         });
         saveButton.setOnClickListener(v -> savePet());
         cancelButton.setOnClickListener(v -> toggleEditMode(false));
@@ -210,11 +279,13 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         availabilityEdit.setAdapter(availabilityAdapter);
     }
 
+
     private void bindPetData() {
         nameText.setText(pet.getName() != null ? pet.getName() : "N/A");
         speciesText.setText(pet.getSpecies() != null ? pet.getSpecies() : "N/A");
         breedText.setText(pet.getBreed() != null ? pet.getBreed() : "N/A");
-        birthdayText.setText(pet.getDateOfBirth() != null ? new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(pet.getDateOfBirth()) : "N/A");
+        birthdayText.setText(pet.getDateOfBirth() != null && !pet.getDateOfBirth().isEmpty() ?
+                formatDateForDisplay(pet.getDateOfBirth()) : "N/A");
         genderText.setText(pet.getGender() != null ? pet.getGender() : "N/A");
         weightText.setText(pet.getWeight() > 0 ? String.format(Locale.US, "%.2f kg", pet.getWeight()) : "N/A");
         colorText.setText(pet.getColor() != null ? pet.getColor() : "N/A");
@@ -224,16 +295,28 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
 
         // Pre-fill edit fields
         nameEdit.setText(pet.getName());
-        speciesEdit.setText(pet.getSpecies());
+//        speciesEdit.setText(pet.getSpecies());
         breedEdit.setText(pet.getBreed());
-        genderEdit.setText(pet.getGender());
+        birthdayEdit.setText(pet.getDateOfBirth() != null && !pet.getDateOfBirth().isEmpty() ?
+                formatDateForDisplay(pet.getDateOfBirth()) : "");
+//        genderEdit.setText(pet.getGender());
         weightEdit.setText(pet.getWeight() > 0 ? String.valueOf(pet.getWeight()) : "");
         colorEdit.setText(pet.getColor());
         descEdit.setText(pet.getDescription());
-        availabilityEdit.setText(pet.getAvailabilityStatus());
+//        availabilityEdit.setText(pet.getAvailabilityStatus());
         priceEdit.setText(pet.getPrice() > 0 ? String.valueOf(pet.getPrice()) : "");
         pedigreeEdit.setText(pet.getPedigreeInfo());
         healthEdit.setText(pet.getHealthStatus());
+    }
+
+    private String formatDateForDisplay(String dateStr) {
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return dateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } catch (DateTimeParseException e) {
+            Log.e(TAG, "Failed to parse date for display: " + dateStr, e);
+            return dateStr; // Fallback to raw string
+        }
     }
 
     private void toggleEditMode(boolean enable) {
@@ -242,30 +325,57 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         // View mode visibility
         petImage.setVisibility(!enable ? View.VISIBLE : View.GONE);
         photoPager.setVisibility(!enable && photoPager.getAdapter() != null ? View.VISIBLE : View.GONE);
+        nameLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         nameText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        speciesLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         speciesText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        breedLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         breedText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        birthdayLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         birthdayText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        genderLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         genderText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        weightLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         weightText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        colorLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         colorText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        descLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         descText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        availabilityLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         availabilityText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        priceLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         priceText.setVisibility(!enable ? View.VISIBLE : View.GONE);
         editButton.setVisibility(!enable ? View.VISIBLE : View.GONE);
         deleteButton.setVisibility(!enable ? View.VISIBLE : View.GONE);
 
         // Edit mode visibility
+        nameEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         nameEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        speciesEditLayout.setVisibility(enable ? View.VISIBLE : View.GONE);
+        speciesEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         speciesEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        breedEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         breedEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        birthdayEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
+        birthdayEditLayout.setVisibility(enable ? View.VISIBLE : View.GONE);
+        birthdayEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        genderEditLayout.setVisibility(enable ? View.VISIBLE : View.GONE);
+        genderEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         genderEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        weightEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         weightEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        colorEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         colorEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        descEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         descEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        availabilityEditLayout.setVisibility(enable ? View.VISIBLE : View.GONE);
+        availabilityEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         availabilityEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        priceEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         priceEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        pedigreeEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         pedigreeEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
+        healthEditLabel.setVisibility(enable ? View.VISIBLE : View.GONE);
         healthEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
         saveButton.setVisibility(enable ? View.VISIBLE : View.GONE);
         cancelButton.setVisibility(enable ? View.VISIBLE : View.GONE);
@@ -293,6 +403,19 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         }
 
         UpdatePetRequest request = new UpdatePetRequest();
+        String birthday = birthdayEdit.getText() != null ? birthdayEdit.getText().toString().trim() : "";
+        String dateOfBirth = null;
+        if (!birthday.isEmpty()) {
+            try {
+                LocalDate localDate = LocalDate.parse(birthday, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                dateOfBirth = localDate.atStartOfDay().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (DateTimeParseException e) {
+                errorText.setText("Invalid birthday format (use YYYY-MM-DD)");
+                errorText.setVisibility(View.VISIBLE);
+                return;
+            }
+        }
+        request.setDateOfBirth(dateOfBirth);
         request.setName(name);
         request.setSpecies(species);
         request.setBreed(breedEdit.getText() != null ? breedEdit.getText().toString().trim() : null);

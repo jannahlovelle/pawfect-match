@@ -12,6 +12,9 @@
     <color name="colorPrimary">#FFFFFF</color>
     <color name="colorOnPrimary">#2C2C2C</color>
 
+    <color name="colorOnSurface">#212121</color>
+    <color name="colorSurface">#FFFFFF</color>
+
     <color name="colorBackground">#FFFFFF</color>
     <color name="colorOnBackground">#000000</color>
 

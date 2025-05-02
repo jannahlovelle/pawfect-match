@@ -187,7 +187,8 @@ public class ProfileFragment extends Fragment {
         binding.profileEditEmail.setVisibility(View.VISIBLE);
         binding.profileEditPhone.setVisibility(View.VISIBLE);
         binding.profileEditAddress.setVisibility(View.VISIBLE);
-        binding.profileEditPassword.setVisibility(View.VISIBLE);
+//        binding.profileEditPassword.setVisibility(View.VISIBLE);
+//removed: will be putting change password in settings
 
         binding.profileSubmitbtnWrapper.setVisibility(View.VISIBLE);
         binding.profileSubmtbtnText.setVisibility(View.VISIBLE);
@@ -209,7 +210,7 @@ public class ProfileFragment extends Fragment {
         binding.profileEditEmail.setVisibility(View.GONE);
         binding.profileEditPhone.setVisibility(View.GONE);
         binding.profileEditAddress.setVisibility(View.GONE);
-        binding.profileEditPassword.setVisibility(View.GONE);
+//        binding.profileEditPassword.setVisibility(View.GONE);
 
         binding.profileSubmitbtnWrapper.setVisibility(View.GONE);
         binding.profileSubmtbtnText.setVisibility(View.GONE);

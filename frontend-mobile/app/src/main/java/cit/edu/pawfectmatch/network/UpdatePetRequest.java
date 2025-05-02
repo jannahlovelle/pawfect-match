@@ -1,17 +1,43 @@
 package cit.edu.pawfectmatch.network;
 
+import com.google.gson.annotations.SerializedName;
+import java.time.LocalDateTime;
+
 public class UpdatePetRequest {
+    @SerializedName("name")
     private String name;
+
+    @SerializedName("species")
     private String species;
+
+    @SerializedName("breed")
     private String breed;
+
+    @SerializedName("gender")
     private String gender;
+
+    @SerializedName("dateOfBirth")
     private String dateOfBirth;
+
+    @SerializedName("weight")
     private Double weight;
+
+    @SerializedName("color")
     private String color;
+
+    @SerializedName("description")
     private String description;
+
+    @SerializedName("availabilityStatus")
     private String availabilityStatus;
+
+    @SerializedName("price")
     private Double price;
+
+    @SerializedName("pedigreeInfo")
     private String pedigreeInfo;
+
+    @SerializedName("healthStatus")
     private String healthStatus;
 
     // Getters and setters
