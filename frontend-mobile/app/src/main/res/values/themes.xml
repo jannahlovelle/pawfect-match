@@ -3,6 +3,7 @@
     <style name="Base.Theme.PawfectMatch" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:colorBackground">@color/colorBackground</item>
         <item name="colorOnBackground">@color/colorOnBackground</item>
+        <item name="colorOnPrimary">@color/colorPrimary</item>
 
         <!-- Fix the status bar -->
         <item name="android:statusBarColor">@color/white</item> <!-- dark icons for light background -->

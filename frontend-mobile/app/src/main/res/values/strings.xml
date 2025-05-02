@@ -15,4 +15,33 @@
 <!--    activity login strings-->
     <string name="welcome">Welcome to Pawfect Match!</string>
     <string name="login">Login</string>
+    <string name="description_optional">Description (Optional)</string>
+    <string name="add_pet">Add Pet</string>
+    <string name="weight_kg_optional">Weight (kg, Optional)</string>
+    <string name="breed_optional">Breed (Optional)</string>
+    <string name="gender">gender</string>
+    <string name="species">species</string>
+    <string name="pet_name">Pet Name</string>
+    <string name="error">Error</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="or_sign_in_with">or sign in with</string>
+    <string name="google">Google</string>
+    <string name="sign_up">Sign up</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="address">Address</string>
+    <string name="next">Next</string>
+    <string name="profile_picture">Profile Picture</string>
+    <string name="upload_profile_picture">Upload Profile Picture</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="already_have_an_account_login_here">Already have an account? Login here</string>
+    <string name="default_web_client_id">758447998498-eqegfg9ikm3cg4vq8hvuhg8llk2h7j7h.apps.googleusercontent.com</string>
+
+    <string-array name="gender_options">
+        <item>Select Gender</item>
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
 </resources>

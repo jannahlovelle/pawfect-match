@@ -109,7 +109,7 @@ export default function Login() {
       <div className="left-section">
         <div className="background-overlay"></div>
         <div className="logo-container">
-          <img src={logo} alt="Logo" className="logo" />
+          <img src={logo} alt="Logo" className="loginsidelogo" />
         </div>
       </div>
 

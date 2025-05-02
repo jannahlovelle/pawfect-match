@@ -6,80 +6,165 @@
     android:layout_height="match_parent"
     tools:context=".signupsteps.SignupStep1Activity">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.32"
+        android:scaleType="centerCrop"
+        android:src="@drawable/background__1_" />
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center_horizontal"
+        android:scaleType="centerCrop"
+        android:src="@drawable/pm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+
+
+
     <ScrollView
+        android:id="@+id/scrollView4"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/image">
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:padding="24dp"
-            android:gravity="center_horizontal">
+            android:background="@drawable/top_rounded_bg"
+            android:padding="24dp">
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/dot1"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/dot_active" />
+
+                <TextView
+                    android:id="@+id/dot2"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/dot_inactive" />
+            </LinearLayout>
             <!-- Logo -->
-            <ImageView
-                android:id="@+id/signup_logo"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_marginTop="40dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/pm" />
-
+            <TextView
+                android:id="@+id/login_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:labelFor="@+id/login_email"
+                android:text="@string/sign_up"
+                android:layout_gravity="left"
+                android:textSize="30sp" />
             <!-- Email -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/email"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="left"
+                android:textSize="20sp"/>
             <EditText
                 android:id="@+id/signup_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:background="@drawable/rounded_edittext"
                 android:drawableStart="@drawable/baseline_email_24"
-                android:hint="Email"
+                android:drawablePadding="10dp"
+                android:hint="@string/email"
                 android:inputType="textEmailAddress"
                 android:padding="12dp" />
 
             <!-- First Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/first_name"
+                android:layout_gravity="left"
+                android:textSize="20sp"/>
+
             <EditText
                 android:id="@+id/signup_first_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="First Name"
+                android:hint="@string/first_name"
+                android:drawableLeft="@drawable/baseline_person_24"
+                android:drawablePadding="10dp"
                 android:padding="12dp" />
 
             <!-- Last Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/last_name"
+                android:layout_gravity="left"
+                android:textSize="20sp"/>
             <EditText
                 android:id="@+id/signup_last_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="Last Name"
+                android:hint="@string/last_name"
+                android:drawableLeft="@drawable/baseline_person_24"
+                android:drawablePadding="10dp"
                 android:padding="12dp" />
 
             <!-- Phone -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/phone_number"
+                android:layout_gravity="left"
+
+                android:textSize="20sp"/>
             <EditText
                 android:id="@+id/signup_phone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="Phone Number"
+                android:hint="@string/phone_number"
                 android:inputType="phone"
+                android:drawableLeft="@drawable/baseline_phone_24"
+                android:drawablePadding="10dp"
                 android:padding="12dp" />
 
             <!-- Address -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/address"
+                android:layout_gravity="left"
+                android:textSize="20sp"/>
             <EditText
                 android:id="@+id/signup_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_edittext"
-                android:hint="Address"
+                android:hint="@string/address"
+                android:drawableLeft="@drawable/baseline_add_location_24"
+                android:drawablePadding="10dp"
                 android:padding="12dp" />
 
             <!-- Next Button -->
@@ -89,7 +174,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="40dp"
-                android:background="@drawable/rounded_card_bg"
+                android:background="@drawable/primary_rounded_edittext"
                 android:clickable="true"
                 android:focusable="true">
 
@@ -99,8 +184,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:padding="12dp"
-                    android:text="Next"
-                    android:textColor="@android:color/white"
+                    android:text="@string/next"
+                    android:textColor="@color/primary"
                     android:textSize="16sp" />
 
                 <ProgressBar

@@ -41,13 +41,14 @@
 }
 
 .center-content {
+  border-radius: 10px;
   flex: 1;
   padding: 20px;
   overflow-y: auto;
 }
 
 .add-pet-container {
-  max-width: 800px;
+  width: 75%;
   margin: 0 auto;
   background: white;
   border-radius: 10px;
@@ -61,7 +62,7 @@
   text-align: center;
   padding: 20px;
   margin: 0;
-  color: #333;
+  color: #6b3f43;
   border-bottom: 1px solid #eee;
 }
 
@@ -169,13 +170,16 @@
 }
 
 .pet-info-form {
+  width: 90%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 50px;
 }
 
 .form-group {
+
   margin-bottom: 15px;
+  margin: 5px;
 }
 
 .form-group label {
@@ -220,7 +224,7 @@
 .form-buttons {
   grid-column: span 2;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 15px;
   margin-top: 20px;
 }

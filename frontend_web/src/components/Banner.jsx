@@ -1,6 +1,6 @@
 import React from 'react';
 import './Banner.css';
-import logo from '../assets/logo2.png';
+import logo from '../assets/Logo1.png';
 import { LogOut } from 'lucide-react';
 
 export default function Banner({ firstName = "IamDogLover", onLogout }) {

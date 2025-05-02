@@ -2,10 +2,12 @@ package cit.edu.pawfectmatch;
 
 import static cit.edu.pawfectmatch.LoginActivity.BASE_URL;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Menu;
 import android.widget.ImageView;
@@ -21,6 +23,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -46,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private DrawerLayout drawer;
 
+    @SuppressLint("WrongConstant")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,12 +58,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setSupportActionBar(binding.appBarMain.toolbar);
-        binding.appBarMain.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
+        binding.appBarMain.fab.setVisibility(View.GONE);
 
         drawer = binding.drawerLayout;
         navigationView = binding.navView;
@@ -68,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
         navNameHolder = headerView.findViewById(R.id.nav_header_name);
         navEmailHolder = headerView.findViewById(R.id.nav_header_email);
         profileImageView = headerView.findViewById(R.id.nav_profile_pic);
+
+        DrawerLayout.LayoutParams params = (DrawerLayout.LayoutParams) navigationView.getLayoutParams();
+        params.gravity = Gravity.START; // Use Gravity.START for left-side drawer
+        navigationView.setLayoutParams(params);
 
         // User Data Passing START
         SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
@@ -146,6 +149,28 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
+
+//        binding.appBarMain.fab.setOnClickListener(view -> {
+//            NavController navController1 = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
+//            if (navController1.getCurrentDestination().getId() == R.id.nav_pets) {
+//                navController1.navigate(R.id.nav_addPetFragment);
+//            }
+//        });
+
+        binding.appBarMain.fab.setOnClickListener(view -> {
+            NavController navController1 = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
+            navController1.navigate(R.id.nav_addPetFragment);
+        });
+//         Add destination change listener to toggle Toolbar visibility
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (destination.getId() == R.id.nav_pets) {
+                // Show Toolbar in ProfileFragment
+                binding.appBarMain.fab.setVisibility(View.VISIBLE);
+            } else {
+                // Hide Toolbar in all other fragments
+                binding.appBarMain.fab.setVisibility(View.GONE);
+            }
+        });
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();

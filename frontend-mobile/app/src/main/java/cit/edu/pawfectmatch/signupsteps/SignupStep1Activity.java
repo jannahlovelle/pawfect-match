@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import cit.edu.pawfectmatch.R;
 
@@ -19,6 +20,7 @@ public class SignupStep1Activity extends AppCompatActivity {
     private FrameLayout nextButtonWrapper;
     private TextView nextStepText;
     private ProgressBar nextStepSpinner;
+    private ViewPager2 viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +66,7 @@ public class SignupStep1Activity extends AppCompatActivity {
             intent.putExtra("phone", phone);
             intent.putExtra("address", address);
             startActivity(intent);
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         });
     }
 
