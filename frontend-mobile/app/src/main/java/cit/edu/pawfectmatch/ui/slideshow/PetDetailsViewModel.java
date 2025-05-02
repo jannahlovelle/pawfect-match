@@ -1,6 +1,5 @@
 package cit.edu.pawfectmatch.ui.slideshow;
 
-import static cit.edu.pawfectmatch.LoginActivity.BASE_URL;
 
 import android.app.Application;
 import android.content.Context;
@@ -14,35 +13,37 @@ import androidx.lifecycle.MutableLiveData;
 import java.util.List;
 import java.util.Map;
 
-import cit.edu.pawfectmatch.backendstuff.Pet;
+import cit.edu.pawfectmatch.backendstuff.Photo;
 import cit.edu.pawfectmatch.network.ApiService;
-import cit.edu.pawfectmatch.network.CreatePetRequest;
+import cit.edu.pawfectmatch.network.UpdatePetRequest;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class PetViewModel extends AndroidViewModel {
-    private final MutableLiveData<List<Pet>> pets = new MutableLiveData<>();
+public class PetDetailsViewModel extends AndroidViewModel {
+
+    private final MutableLiveData<List<Photo>> photos = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> createSuccess = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> updateSuccess = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> deleteSuccess = new MutableLiveData<>();
     private final ApiService apiService;
     private final SharedPreferences sharedPreferences;
 
-    public PetViewModel(@NonNull Application application) {
+    public PetDetailsViewModel(@NonNull Application application) {
         super(application);
         sharedPreferences = application.getSharedPreferences("auth", Context.MODE_PRIVATE);
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(cit.edu.pawfectmatch.LoginActivity.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(ApiService.class);
     }
 
-    public LiveData<List<Pet>> getPets() {
-        return pets;
+    public LiveData<List<Photo>> getPhotos() {
+        return photos;
     }
 
     public LiveData<Boolean> getIsLoading() {
@@ -53,13 +54,16 @@ public class PetViewModel extends AndroidViewModel {
         return errorMessage;
     }
 
-    public LiveData<Boolean> getCreateSuccess() {
-        return createSuccess;
+    public LiveData<Boolean> getUpdateSuccess() {
+        return updateSuccess;
     }
 
-    public void fetchMyPets() {
-        isLoading.setValue(true);
+    public LiveData<Boolean> getDeleteSuccess() {
+        return deleteSuccess;
+    }
 
+    public void fetchPetPhotos(String petId) {
+        isLoading.setValue(true);
         String token = sharedPreferences.getString("jwt_token", null);
         if (token == null) {
             isLoading.setValue(false);
@@ -68,26 +72,26 @@ public class PetViewModel extends AndroidViewModel {
         }
 
         String authHeader = "Bearer " + token;
-        apiService.getMyPets(authHeader).enqueue(new Callback<List<Pet>>() {
+        apiService.getPetPhotos(authHeader, petId).enqueue(new Callback<List<Photo>>() {
             @Override
-            public void onResponse(Call<List<Pet>> call, Response<List<Pet>> response) {
+            public void onResponse(Call<List<Photo>> call, Response<List<Photo>> response) {
                 isLoading.setValue(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    pets.setValue(response.body());
+                    photos.setValue(response.body());
                 } else {
-                    errorMessage.setValue("Failed to fetch pets: " + response.message());
+                    errorMessage.setValue("Failed to fetch photos: " + response.message());
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Pet>> call, Throwable t) {
+            public void onFailure(Call<List<Photo>> call, Throwable t) {
                 isLoading.setValue(false);
                 errorMessage.setValue("Error: " + t.getMessage());
             }
         });
     }
 
-    public void createPet(CreatePetRequest petRequest) {
+    public void updatePet(String petId, UpdatePetRequest request) {
         isLoading.setValue(true);
         String token = sharedPreferences.getString("jwt_token", null);
         if (token == null) {
@@ -97,15 +101,43 @@ public class PetViewModel extends AndroidViewModel {
         }
 
         String authHeader = "Bearer " + token;
-        apiService.createPet(authHeader, petRequest).enqueue(new Callback<Map<String, String>>() {
+        apiService.updatePet(authHeader, petId, request).enqueue(new Callback<Map<String, String>>() {
             @Override
             public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
                 isLoading.setValue(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    createSuccess.setValue(true);
-                    fetchMyPets(); // Refresh pet list
+                    updateSuccess.setValue(true);
                 } else {
-                    errorMessage.setValue("Failed to create pet: " + response.message());
+                    errorMessage.setValue("Failed to update pet: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, String>> call, Throwable t) {
+                isLoading.setValue(false);
+                errorMessage.setValue("Error: " + t.getMessage());
+            }
+        });
+    }
+
+    public void deletePet(String petId) {
+        isLoading.setValue(true);
+        String token = sharedPreferences.getString("jwt_token", null);
+        if (token == null) {
+            isLoading.setValue(false);
+            errorMessage.setValue("Not authenticated. Please log in.");
+            return;
+        }
+
+        String authHeader = "Bearer " + token;
+        apiService.deletePet(authHeader, petId).enqueue(new Callback<Map<String, String>>() {
+            @Override
+            public void onResponse(Call<Map<String, String>> call, Response<Map<String, String>> response) {
+                isLoading.setValue(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    deleteSuccess.setValue(true);
+                } else {
+                    errorMessage.setValue("Failed to delete pet: " + response.message());
                 }
             }
 

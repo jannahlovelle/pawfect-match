@@ -1,15 +1,9 @@
-package cit.edu.pawfectmatch.backendstuff;
+package cit.edu.pawfectmatch.network;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.Serializable;
+import java.time.LocalDateTime;
 
-public class Pet implements Serializable {
-    @SerializedName("petId")
-    private String petId;
-
-    @SerializedName("userId")
-    private String userId;
-
+public class UpdatePetRequest {
     @SerializedName("name")
     private String name;
 
@@ -23,10 +17,10 @@ public class Pet implements Serializable {
     private String gender;
 
     @SerializedName("dateOfBirth")
-    private String dateOfBirth; // Changed to String to match backend response
+    private String dateOfBirth;
 
     @SerializedName("weight")
-    private double weight;
+    private Double weight;
 
     @SerializedName("color")
     private String color;
@@ -38,7 +32,7 @@ public class Pet implements Serializable {
     private String availabilityStatus;
 
     @SerializedName("price")
-    private double price;
+    private Double price;
 
     @SerializedName("pedigreeInfo")
     private String pedigreeInfo;
@@ -47,22 +41,6 @@ public class Pet implements Serializable {
     private String healthStatus;
 
     // Getters and setters
-    public String getPetId() {
-        return petId;
-    }
-
-    public void setPetId(String petId) {
-        this.petId = petId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getName() {
         return name;
     }
@@ -103,11 +81,11 @@ public class Pet implements Serializable {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public double getWeight() {
+    public Double getWeight() {
         return weight;
     }
 
-    public void setWeight(double weight) {
+    public void setWeight(Double weight) {
         this.weight = weight;
     }
 
@@ -135,11 +113,11 @@ public class Pet implements Serializable {
         this.availabilityStatus = availabilityStatus;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
