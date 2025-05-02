@@ -4,62 +4,146 @@ import Banner from '../components/Banner';
 import { Home, Search, Bell, Mail, Settings, User, List, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import defaultProfile from '../assets/defaultprofileimage.png';
 
 export default function UserProfile() {
   const navigate = useNavigate();
-  const firstName = localStorage.getItem("firstName");
-
   const [userDetails, setUserDetails] = useState({
+    userId: '',
     fullName: '',
     email: '',
     phone: '',
     address: '',
     profileImage: ''
   });
-
-  const [userPets, setUserPets] = useState([]); // changed from petData (single) to userPets (array)
+  const [userPets, setUserPets] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [petsLoading, setPetsLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      const profileImage = localStorage.getItem("profileImage");
-
-      if (user) {
-        const fullName = user.displayName || localStorage.getItem("fullName");
-        const email = user.email || localStorage.getItem("email");
-
-        setUserDetails({
-          fullName: fullName || '',
-          email: email || '',
-          phone: localStorage.getItem("phone") || '',
-          address: localStorage.getItem("address") || '',
-          profileImage: profileImage || ''
-        });
-      } else {
-        setUserDetails({
-          fullName: localStorage.getItem("fullName") || '',
-          email: localStorage.getItem("email") || '',
-          phone: localStorage.getItem("phone") || '',
-          address: localStorage.getItem("address") || '',
-          profileImage: profileImage || ''
-        });
+    const fetchUserProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
       }
-    });
 
-    // Load userPets from localStorage
-    const savedPets = JSON.parse(localStorage.getItem("userPets")) || [];
-    setUserPets(savedPets);
+      setLoading(true);
+      setError(null);
 
-    return () => unsubscribe();
-  }, []);
+      try {
+        const profileResponse = await fetch("http://localhost:8080/users/me", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!profileResponse.ok) {
+          if (profileResponse.status === 401) {
+            localStorage.removeItem("token");
+            navigate("/login");
+            throw new Error("Session expired. Please log in again.");
+          }
+          const errorData = await profileResponse.json();
+          throw new Error(errorData.message || "Failed to fetch user profile");
+        }
+
+        const userProfile = await profileResponse.json();
+        setUserDetails({
+          userId: userProfile.user?.userID || '',
+          fullName: `${userProfile.user?.firstName || ''} ${userProfile.user?.lastName || ''}`.trim(),
+          email: userProfile.user?.email || '',
+          phone: userProfile.user?.phone || '',
+          address: userProfile.user?.address || '',
+          profileImage: userProfile.user?.profilePicture || defaultProfile
+        });
+
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchUserPets = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      setPetsLoading(true);
+      try {
+        const petsResponse = await fetch("http://localhost:8080/pets/my-pets", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!petsResponse.ok) {
+          if (petsResponse.status === 401) {
+            localStorage.removeItem("token");
+            navigate("/login");
+            throw new Error("Session expired. Please log in again.");
+          }
+          const errorData = await petsResponse.json();
+          throw new Error(errorData.message || "Failed to fetch user pets");
+        }
+
+        const petsData = await petsResponse.json();
+        
+        const petsWithPhotos = await Promise.all(
+          petsData.map(async (pet) => {
+            try {
+              const photosResponse = await fetch(
+                `http://localhost:8080/pets/${pet.petId}/photos`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+
+              if (!photosResponse.ok) {
+                return { ...pet, photo: defaultProfile };
+              }
+
+              const photosData = await photosResponse.json();
+              return {
+                ...pet,
+                photo: photosData.length > 0 ? photosData[0].url : defaultProfile
+              };
+            } catch (err) {
+              return { ...pet, photo: defaultProfile };
+            }
+          })
+        );
+
+        setUserPets(petsWithPhotos);
+      } catch (err) {
+        console.error("Error fetching pets:", err);
+        setError(err.message);
+      } finally {
+        setPetsLoading(false);
+      }
+    };
+
+    fetchUserPets();
+  }, [navigate]);
 
   const handleLogout = async () => {
     const confirmLogout = window.confirm("Are you sure you want to logout?");
     if (!confirmLogout) return;
 
     try {
-      await auth.signOut();
+      await signOut(auth);
       localStorage.clear();
       alert("You have logged out successfully!");
       navigate("/login");
@@ -71,69 +155,102 @@ export default function UserProfile() {
 
   return (
     <div className="home-wrapper">
-      <Banner firstName={firstName} onLogout={handleLogout} />
+      <Banner firstName={userDetails.fullName.split(' ')[0] || 'User'} onLogout={handleLogout} />
 
       <div className="main-content">
         {/* Left Sidebar */}
-        <div className="sidebar">
-          <Link to="/home"><Home size={20} /> Home</Link>
+        <div className="sidebar left">
+          <Link to="/dashboard"><Home size={20} /> Home</Link>
           <Link to="/search"><Search size={20} /> Search</Link>
           <Link to="/notifications"><Bell size={20} /> Notifications</Link>
           <Link to="/messages"><Mail size={20} /> Messages</Link>
           <Link to="/settings"><Settings size={20} /> Settings</Link>
         </div>
 
-        {/* Center - Profile */}
+        {/* Center Content */}
         <div className="center-content">
-          <div className="profile-container">
-            <div className="profile-content">
-              {/* Left - Image + Edit */}
-              <div className="profile-left">
-                <img
-                  src={userDetails.profileImage || defaultProfile}
-                  alt="Profile"
-                  className="profile-pic"
-                />
-                <Link to="/edit-profile" className="edit-profile-link">Edit Profile</Link>
+          {loading ? (
+            <div className="loading-spinner">Loading profile...</div>
+          ) : error ? (
+            <p className="error-message">{error}</p>
+          ) : (
+            <div className="profile-container">
+              {/* Fixed User Profile Section */}
+              <div className="profile-header">
+                <div className="profile-image-container">
+                  <img
+                    src={userDetails.profileImage}
+                    alt="Profile"
+                    className="profile-image"
+                    onError={(e) => {
+                      e.target.src = defaultProfile;
+                    }}
+                  />
+                  <Link to="/edit-profile" className="edit-profile-button">
+                    Edit Profile
+                  </Link>
+                </div>
+                <div className="profile-info">
+                  <h2 className="profile-name">{userDetails.fullName}</h2>
+                  <p className="profile-email">{userDetails.email}</p>
+                  <p className="profile-phone">
+                    <span className="info-label">Phone:</span> {userDetails.phone || 'Not provided'}
+                  </p>
+                  <p className="profile-address">
+                    <span className="info-label">Address:</span> {userDetails.address || 'Not provided'}
+                  </p>
+                </div>
               </div>
 
-              {/* Right - Info */}
-              <div className="profile-right profile-info">
-                <h2>{userDetails.fullName}</h2>
-                <p>{userDetails.email}</p>
-                <p>{userDetails.phone}</p>
-                <p>{userDetails.address}</p>
+              {/* Scrollable Pets Section */}
+              <div className="pets-section-container">
+                <div className="section-header">
+                  <h3>My Pets</h3>
+                  <Link to="/add-pet" className="add-pet-button">
+                    <Plus size={18} /> Add Pet
+                  </Link>
+                </div>
+
+                <div className="pets-scrollable-content">
+                  {petsLoading ? (
+                    <div className="loading-spinner">Loading pets...</div>
+                  ) : userPets.length > 0 ? (
+                    <div className="pets-grid">
+                      {userPets.map((pet) => (
+                        <div key={pet.petId} className="pet-card">
+                          <div className="pet-image-container">
+                            <img
+                              src={pet.photo}
+                              alt={pet.name}
+                              className="pet-image"
+                              onError={(e) => {
+                                e.target.src = defaultProfile;
+                              }}
+                            />
+                          </div>
+                          <div className="pet-info">
+                            <h4 className="pet-name">{pet.name}</h4>
+                            <p className="pet-details">
+                              <span className="pet-breed">{pet.breed}</span>
+                              {pet.species && <span className="pet-species"> • {pet.species}</span>}
+                            </p>
+                            {pet.age && <p className="pet-age">{pet.age} years old</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-pets-message">
+                      <p>You haven't added any pets yet.</p>
+                      <Link to="/add-pet" className="add-pet-link">
+                        Add your first pet
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-
-            <hr className="divider" />
-
-            {/* Pet Gallery */}
-            <div className="pet-gallery">
-              <div className="add-pet-box">
-                <Link to="/add-pet">
-                  <button className="add-pet-btn">+ Add Pet</button>
-                </Link>
-              </div>
-
-              {/* Show saved pets here */}
-              {userPets.length > 0 ? (
-                userPets.map((pet, index) => (
-                  <div key={index} className="pet-card">
-                    <img
-                      src={pet.photo}
-                      alt={pet.name}
-                      className="pet-image"
-                    />
-                    <h3>{pet.name}</h3>
-                    <p>{pet.breed}</p>
-                  </div>
-                ))
-              ) : (
-                <p>No pets added yet.</p>
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Right Sidebar */}

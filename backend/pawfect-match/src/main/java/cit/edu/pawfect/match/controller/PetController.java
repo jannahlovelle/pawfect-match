@@ -1,6 +1,7 @@
 package cit.edu.pawfect.match.controller;
 
 import cit.edu.pawfect.match.dto.CreatePetRequest;
+import cit.edu.pawfect.match.dto.PetFeedResponse;
 import cit.edu.pawfect.match.dto.UpdatePetRequest;
 import cit.edu.pawfect.match.entity.Pet;
 import cit.edu.pawfect.match.entity.Photo;
@@ -239,6 +240,31 @@ public class PetController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("status", "error");
             errorResponse.put("message", "An error occurred while deleting the pet: " + e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<?> getPetFeed(
+            @RequestParam(value = "species", required = false) String species,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (email == null || email.equals("anonymousUser")) {
+                logger.error("Unauthorized access to pet feed");
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", "Authentication required to access the pet feed");
+                return ResponseEntity.status(401).body(errorResponse);
+            }
+            List<PetFeedResponse> feed = petService.getPetsForFeed(species, page, size);
+            return ResponseEntity.ok(feed);
+        } catch (Exception e) {
+            logger.error("Error retrieving pet feed: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred while retrieving the pet feed: " + e.getMessage());
             return ResponseEntity.status(400).body(errorResponse);
         }
     }
