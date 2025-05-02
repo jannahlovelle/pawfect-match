@@ -11,6 +11,7 @@
   background-color: #f5f5f5;
 }
 
+
 .sidebar {
   width: 200px;
   padding: 20px;
@@ -41,6 +42,7 @@
 }
 
 .center-content {
+  border-radius: 10px;
   flex: 1;
   padding: 20px;
   overflow-y: auto;
@@ -48,6 +50,8 @@
 
 /* Profile Container */
 .profile-container {
+  border-radius: 10px;
+  width: 75%; 
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -73,6 +77,7 @@
 }
 
 .profile-image {
+  margin-left: 100px;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -87,12 +92,13 @@
   background: #2196F3;
   color: white;
   padding: 5px 10px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   text-decoration: none;
 }
 
 .profile-info {
+  margin-left: 80px;
   flex: 1;
 }
 
@@ -104,17 +110,19 @@
 .profile-email {
   margin: 0 0 10px 0;
   color: #666;
+  font-size: 14px;
 }
 
 .profile-phone,
 .profile-address {
+  font-size: 14px;
   margin: 5px 0;
-  color: #444;
+  color: #666;
 }
 
 .info-label {
   font-weight: 500;
-  color: #333;
+  color: #333333e1;
 }
 
 /* Scrollable Pets Section */
@@ -139,7 +147,7 @@
 
 .section-header h3 {
   margin: 0;
-  color: #333;
+  color: #6b3f43;
 }
 
 .add-pet-button {
@@ -149,7 +157,7 @@
   background: #4CAF50;
   color: white;
   padding: 8px 15px;
-  border-radius: 4px;
+  border-radius: 6px;
   text-decoration: none;
   font-size: 14px;
 }

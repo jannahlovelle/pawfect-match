@@ -158,6 +158,7 @@ export default function UserProfile() {
       <Banner firstName={userDetails.fullName.split(' ')[0] || 'User'} onLogout={handleLogout} />
 
       <div className="main-content">
+
         {/* Left Sidebar */}
         <div className="sidebar left">
           <Link to="/dashboard"><Home size={20} /> Home</Link>
