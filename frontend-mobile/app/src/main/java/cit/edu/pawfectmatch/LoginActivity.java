@@ -55,7 +55,7 @@ public class LoginActivity extends AppCompatActivity {
     private FrameLayout loginButtonWrapper, signupButtonWrapper, googleButtonWrapper;
     private TextView loginButtonText, signupButtonText, googleButtonText;
     private ProgressBar loginButtonSpinner, signupButtonSpinner, googleButtonSpinner;
-    public static final String BASE_URL = "http://192.168.1.7:8080/";
+    public static final String BASE_URL = "https://pawfect-match-mmlo.onrender.com/";
     private ApiService apiService;
     private FirebaseAuth mAuth;
 
