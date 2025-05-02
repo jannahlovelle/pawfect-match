@@ -9,7 +9,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Create the runtime image
-FROM eclipse-temurin:17-jdk-slim
+FROM openjdk:17-jdk-slim
 WORKDIR /app
 # Copy the JAR from the builder stage
 COPY --from=builder /app/target/pawfect-match-0.0.1-SNAPSHOT.jar app.jar
