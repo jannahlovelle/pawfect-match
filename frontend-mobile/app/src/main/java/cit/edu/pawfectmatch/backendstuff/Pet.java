@@ -1,9 +1,9 @@
 package cit.edu.pawfectmatch.backendstuff;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.Date;
+import java.io.Serializable;
 
-public class Pet {
+public class Pet implements Serializable {
     @SerializedName("petId")
     private String petId;
 
@@ -23,7 +23,7 @@ public class Pet {
     private String gender;
 
     @SerializedName("dateOfBirth")
-    private Date dateOfBirth;
+    private String dateOfBirth; // Changed to String to match backend response
 
     @SerializedName("weight")
     private double weight;
@@ -95,11 +95,11 @@ public class Pet {
         this.gender = gender;
     }
 
-    public Date getDateOfBirth() {
+    public String getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Date dateOfBirth) {
+    public void setDateOfBirth(String dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 

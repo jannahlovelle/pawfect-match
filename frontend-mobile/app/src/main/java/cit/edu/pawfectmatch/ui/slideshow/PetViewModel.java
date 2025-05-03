@@ -5,10 +5,12 @@ import static cit.edu.pawfectmatch.LoginActivity.BASE_URL;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +35,7 @@ public class PetViewModel extends AndroidViewModel {
         super(application);
         sharedPreferences = application.getSharedPreferences("auth", Context.MODE_PRIVATE);
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL) // Replace with your actual base URL
+                .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         apiService = retrofit.create(ApiService.class);
@@ -50,9 +52,11 @@ public class PetViewModel extends AndroidViewModel {
     public LiveData<String> getErrorMessage() {
         return errorMessage;
     }
+
     public LiveData<Boolean> getCreateSuccess() {
         return createSuccess;
     }
+
     public void fetchMyPets() {
         isLoading.setValue(true);
 
@@ -82,6 +86,7 @@ public class PetViewModel extends AndroidViewModel {
             }
         });
     }
+
     public void createPet(CreatePetRequest petRequest) {
         isLoading.setValue(true);
         String token = sharedPreferences.getString("jwt_token", null);
@@ -98,6 +103,7 @@ public class PetViewModel extends AndroidViewModel {
                 isLoading.setValue(false);
                 if (response.isSuccessful() && response.body() != null) {
                     createSuccess.setValue(true);
+                    fetchMyPets(); // Refresh pet list
                 } else {
                     errorMessage.setValue("Failed to create pet: " + response.message());
                 }

@@ -157,20 +157,20 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
-        binding.appBarMain.fab.setOnClickListener(view -> {
-            NavController navController1 = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
-            navController1.navigate(R.id.nav_addPetFragment);
-        });
-//         Add destination change listener to toggle Toolbar visibility
-        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getId() == R.id.nav_pets) {
-                // Show Toolbar in ProfileFragment
-                binding.appBarMain.fab.setVisibility(View.VISIBLE);
-            } else {
-                // Hide Toolbar in all other fragments
-                binding.appBarMain.fab.setVisibility(View.GONE);
-            }
-        });
+//        binding.appBarMain.fab.setOnClickListener(view -> {
+//            NavController navController1 = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
+//            navController1.navigate(R.id.nav_addPetFragment);
+//        });
+////         Add destination change listener to toggle Toolbar visibility
+//        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+//            if (destination.getId() == R.id.nav_pets) {
+//                // Show Toolbar in ProfileFragment
+//                binding.appBarMain.fab.setVisibility(View.VISIBLE);
+//            } else {
+//                // Hide Toolbar in all other fragments
+//                binding.appBarMain.fab.setVisibility(View.GONE);
+//            }
+//        });
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();

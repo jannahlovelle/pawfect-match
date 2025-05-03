@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "117117751091",
+    "project_id": "pawfectmatch-2ebca",
+    "storage_bucket": "pawfectmatch-2ebca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117117751091:android:ed9fd3d98c008a6df43846",
+        "android_client_info": {
+          "package_name": "cit.edu.pawfectmatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117117751091-6t6ds7h7g4bs6atbt2qeuueboj7nf0cc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cit.edu.pawfectmatch",
+            "certificate_hash": "dbabc961b04e6252cfeccf7ff415e662ac438341"
+          }
+        },
+        {
+          "client_id": "117117751091-815o79fnk2shr58d54km2bpcio12fpd8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE7plWUj4sVTmr2Qj5WEL3qGfOSGs-0tQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "117117751091-815o79fnk2shr58d54km2bpcio12fpd8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

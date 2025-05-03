@@ -6,12 +6,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import cit.edu.pawfectmatch.R;
 
@@ -30,10 +35,19 @@ public class PetFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view_pets);
         progressBar = view.findViewById(R.id.progress_bar);
         errorTextView = view.findViewById(R.id.error_text_view);
+        FloatingActionButton fab = view.findViewById(R.id.fab_add_pet);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        petAdapter = new PetAdapter();
+        petAdapter = new PetAdapter(pet -> {
+            PetDetailsBottomSheet bottomSheet = PetDetailsBottomSheet.newInstance(pet);
+            bottomSheet.show(getParentFragmentManager(), "PetDetailsBottomSheet");
+        });
         recyclerView.setAdapter(petAdapter);
+
+        fab.setOnClickListener(v -> {
+            NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
+            navController.navigate(R.id.nav_addPetFragment);
+        });
 
         return view;
     }
@@ -67,6 +81,10 @@ public class PetFragment extends Fragment {
             }
         });
 
+        petViewModel.fetchMyPets();
+    }
+
+    public void refreshPets() {
         petViewModel.fetchMyPets();
     }
 }

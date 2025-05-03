@@ -16,11 +16,18 @@
   
   .header-logo {
     height: 40px;
+    border-radius: 50px;
   }
   
   .header-title {
     font-size: 18px;
     font-weight: bold;
+  }
+  
+  .back-to-dashboard:hover {
+    color: #555; /* or any color you prefer */
+    transform: scale(1.1);
+    transition: 0.2s ease;
   }
   
   .logout-icon {
