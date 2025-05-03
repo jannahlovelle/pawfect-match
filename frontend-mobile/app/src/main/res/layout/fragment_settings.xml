@@ -27,7 +27,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:padding="20dp">
+        android:padding="20dp"
+        >
 
         <TextView
             android:id="@+id/textView3"
@@ -46,6 +47,15 @@
             android:text="Delete Account"
             android:textColor="@color/google_red"
             android:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/hardertint"
+            android:text="Delete Account"
+            android:textColor="@color/google_red"
+            android:gravity="left"
+            android:visibility="visible"/>
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
