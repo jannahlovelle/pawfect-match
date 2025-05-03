@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import '../styles/Messages.css';
 import { ArrowLeft, UserPlus, Plus, Send, LogOut, User } from 'lucide-react';
-import logo from '../assets/logo1.png';
+import logo from '../assets/Logo1.png';
 
 export default function Messages() {
   const { threadId } = useParams();

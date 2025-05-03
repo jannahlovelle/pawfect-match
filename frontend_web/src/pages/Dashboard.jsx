@@ -6,7 +6,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase"; 
 import { signOut } from "firebase/auth";
 import defaultProfile from '../assets/defaultprofileimage.png';
-import { MessageCircle } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
