@@ -58,7 +58,7 @@ export default function Dashboard() {
       }
 
       console.log(`Fetching pets for page ${pageToFetch}`);
-      const response = await fetch(`http://localhost:8080/pets/feed?page=${pageToFetch}&size=${size}`, {
+      const response = await fetch(`https://pawfect-match-zp0o.onrender.com/pets/feed?page=${pageToFetch}&size=${size}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -32,7 +32,7 @@ export default function EditProfile() {
       }
 
       try {
-        const response = await fetch("http://localhost:8080/users/me", {
+        const response = await fetch("https://pawfect-match-zp0o.onrender.com/users/me", {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -105,7 +105,7 @@ export default function EditProfile() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(`http://localhost:8080/users/${userId}/profile-picture`, {
+      const response = await fetch(`https://pawfect-match-zp0o.onrender.com/users/${userId}/profile-picture`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -157,7 +157,7 @@ export default function EditProfile() {
         ...(formData.password && { password: formData.password }) // Only include if not empty
       };
 
-      const response = await fetch(`http://localhost:8080/users/update/${userId}`, {
+      const response = await fetch(`https://pawfect-match-zp0o.onrender.com/users/update/${userId}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
