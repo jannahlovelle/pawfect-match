@@ -7,6 +7,7 @@ import cit.edu.pawfectmatch.backendstuff.Pet;
 import cit.edu.pawfectmatch.backendstuff.Photo;
 import cit.edu.pawfectmatch.backendstuff.UserData;
 import cit.edu.pawfectmatch.backendstuff.UserProfile;
+import cit.edu.pawfectmatch.ui.home.PetFeedResponse;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
@@ -19,6 +20,7 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
 
@@ -81,5 +83,13 @@ public interface ApiService {
     Call<LoginResponse> firebaseLogin(
             @Part("idToken") RequestBody idToken,
             @Part MultipartBody.Part file
+    );
+
+    @GET("pets/feed")
+    Call<List<PetFeedResponse>> getPetsForFeed(
+            @Header("Authorization") String authToken,
+            @Query("species") String species,
+            @Query("page") int page,
+            @Query("size") int size
     );
 }
