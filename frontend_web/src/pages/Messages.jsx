@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import '../styles/Messages.css';
 import { ArrowLeft, UserPlus, Plus, Send, LogOut, User } from 'lucide-react';
-import logo from '../assets/logo2.png';
+import logo from '../assets/logo1.png';
 
 export default function Messages() {
   const { threadId } = useParams();
@@ -240,7 +240,9 @@ export default function Messages() {
         <div className="messages-main">
           <div className="sidebar-left">
             <div className="messages-title">
+            <div onClick={() => navigate('/dashboard')} className="back-to-dashboard" style={{ cursor: 'pointer' }}>
               <ArrowLeft size={20} />
+            </div>
               <h3>Messages</h3>
               <UserPlus size={20} />
             </div>

@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase"; 
 import { signOut } from "firebase/auth";
 import defaultProfile from '../assets/defaultprofileimage.png';
+import { MessageCircle } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -145,7 +146,7 @@ export default function Dashboard() {
 
   return (
     <div className="home-wrapper">
-      <Banner firstName={userDetails.fullName} onLogout={handleLogout} />
+      <Banner firstName={userDetails.fullName.split(' ')[0]} onLogout={handleLogout} />
 
       <div className="main-content">
         {/* Left Sidebar */}
@@ -159,30 +160,38 @@ export default function Dashboard() {
 
         {/* Middle Section - Pet Feed */}
         <div className="center-content">
-          <h2>Pet Feed</h2>
+          <div className="feed-header">
+            <h2>Pet Feed</h2>
+          </div>
+
           {error && <p className="error">{error}</p>}
           {!loading && pets.length === 0 && !error && <p>No pets available.</p>}
+
           <div className="pet-feed">
-            {pets.map((pet) => (
-              <div key={pet.petId} className="pet-card">
-                <img
-                  src={pet.photoUrl || defaultProfile}
-                  alt={pet.name}
-                  className="pet-image"
-                  loading="lazy"
-                />
-                <div className="pet-info">
-                  <h3>{pet.name}</h3>
-                  <p>{pet.species} - {pet.breed}</p>
-                  <p>{pet.description}</p>
+            {pets.map((pet, index) => (
+              <React.Fragment key={pet.petId}>
+                <div className="pet-card">
+                  <img
+                    src={pet.photoUrl || defaultProfile}
+                    alt={pet.name}
+                    className="pet-image"
+                    loading="lazy"
+                  />
+                  <div className="pet-info">
+                    <h3>{pet.name}</h3>
+                    <p>{pet.species} - {pet.breed}</p>
+                    <p>{pet.description}</p>
+                  </div>
                 </div>
-              </div>
+                {index < pets.length - 1 && <hr className="pet-divider" />}
+              </React.Fragment>
             ))}
           </div>
           {loading && <p className="loading">Loading...</p>}
           {!hasMore && pets.length > 0 && (
             <p className="end-message">No more pets to show</p>
           )}
+
           <div ref={loadMoreRef} style={{ height: '20px' }} />
         </div>
 

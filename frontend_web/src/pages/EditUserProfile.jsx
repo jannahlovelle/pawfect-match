@@ -190,7 +190,7 @@ export default function EditProfile() {
   return (
     <div className="home-wrapper">
       <div className="main-content">
-        <div className="center-content">
+        <div className="editcenter-content">
           <div className="edit-profile-container">
             <h2>Edit Profile</h2>
             {error && <p className="error">{error}</p>}
