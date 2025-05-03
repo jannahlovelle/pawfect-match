@@ -13,14 +13,15 @@ public class WebConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);  // Allow credentials (cookies, etc.)
-
-        // Set both localhost (for local dev) and deployed frontend (Vercel) URLs here
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://pawfect-match-lilac.vercel.app"));
-
-        config.addAllowedHeader("*");  // Allow all headers
-        config.addAllowedMethod("*");  // Allow all HTTP methods (GET, POST, etc.)
-
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "https://pawfect-match-lilac.vercel.app"
+        ));
+        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.addExposedHeader("Authorization");
+    
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
