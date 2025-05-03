@@ -48,14 +48,5 @@
             android:textColor="@color/google_red"
             android:visibility="visible" />
 
-        <com.google.android.material.button.MaterialButton
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/hardertint"
-            android:text="Delete Account"
-            android:textColor="@color/google_red"
-            android:gravity="left"
-            android:visibility="visible"/>
-
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
