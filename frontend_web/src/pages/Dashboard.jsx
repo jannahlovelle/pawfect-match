@@ -58,7 +58,7 @@ export default function Dashboard() {
       }
 
       console.log(`Fetching pets for page ${pageToFetch}`);
-      const response = await fetch(`https://pawfect-match-zp0o.onrender.com/pets/feed?page=${pageToFetch}&size=${size}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/pets/feed?page=${pageToFetch}&size=${size}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -98,7 +98,7 @@ export default function AddPet() {
       const priceValue = petData.price ? parseFloat(petData.price) : null;
       const formattedDate = petData.dateOfBirth ? new Date(petData.dateOfBirth).toISOString() : null;
 
-      const createResponse = await fetch("https://pawfect-match-zp0o.onrender.com/pets/create", {
+      const createResponse = await fetch(`${import.meta.env.VITE_API_URL}/pets/create`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -132,7 +132,7 @@ export default function AddPet() {
         formData.append("file", photoFile);
   
         const photoResponse = await fetch(
-          `https://pawfect-match-zp0o.onrender.com/pets/${createdPet.petId}/photos`,
+          `${import.meta.env.VITE_API_URL}/pets/${createdPet.petId}/photos`,
           {
             method: "POST",
             headers: {
