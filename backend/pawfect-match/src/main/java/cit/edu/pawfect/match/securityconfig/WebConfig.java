@@ -19,7 +19,7 @@ public class WebConfig {
         // ✅ Allow both local and Vercel frontend
         config.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
-            "https://pawfect-match-git-main-jannahlovelles-projects.vercel.app"  
+            "https://pawfect-match-lilac.vercel.app"  
         ));
  
         config.addAllowedHeader("*");
