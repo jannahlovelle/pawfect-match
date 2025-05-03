@@ -79,7 +79,7 @@ export default function Signup() {
     };
 
     try {
-      const res = await fetch("https://pawfect-match-zp0o.onrender.com/auth/register", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),

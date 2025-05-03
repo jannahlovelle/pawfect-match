@@ -35,7 +35,7 @@ export default function Login() {
     }
 
     try {
-      const res = await fetch("https://pawfect-match-zp0o.onrender.com/auth/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,7 +78,7 @@ export default function Login() {
   
       console.log("Firebase ID Token obtained:", idToken.slice(0, 20) + "..."); // Debug: Step 2
   
-      const response = await fetch("https://pawfect-match-zp0o.onrender.com/auth/firebase-login", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/firebase-login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

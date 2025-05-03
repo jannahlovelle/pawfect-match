@@ -34,7 +34,7 @@ export default function UserProfile() {
       setError(null);
 
       try {
-        const profileResponse = await fetch("https://pawfect-match-zp0o.onrender.com/users/me", {
+        const profileResponse = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -79,7 +79,7 @@ export default function UserProfile() {
 
       setPetsLoading(true);
       try {
-        const petsResponse = await fetch("https://pawfect-match-zp0o.onrender.com/pets/my-pets", {
+        const petsResponse = await fetch(`${import.meta.env.VITE_API_URL}/pets/my-pets`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -102,7 +102,7 @@ export default function UserProfile() {
           petsData.map(async (pet) => {
             try {
               const photosResponse = await fetch(
-                `https://pawfect-match-zp0o.onrender.com/pets/${pet.petId}/photos`,
+                `${import.meta.env.VITE_API_URL}/pets/${pet.petId}/photos`,
                 {
                   headers: {
                     'Authorization': `Bearer ${token}`,

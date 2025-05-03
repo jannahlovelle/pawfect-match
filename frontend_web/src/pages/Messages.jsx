@@ -33,7 +33,7 @@ export default function Messages() {
 
     async function fetchThreads() {
       try {
-        const response = await fetch('https://pawfect-match-zp0o.onrender.com/api/chat/threads', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/threads`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
@@ -58,7 +58,7 @@ export default function Messages() {
 
     async function fetchMessages() {
       try {
-        const response = await fetch(`https://pawfect-match-zp0o.onrender.com/api/chat/threads/${threadId}/messages`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/threads/${threadId}/messages`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
@@ -76,7 +76,7 @@ export default function Messages() {
 
     async function fetchThreadInfo() {
       try {
-        const response = await fetch(`https://pawfect-match-zp0o.onrender.com/api/chat/threads/${threadId}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat/threads/${threadId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
@@ -84,7 +84,7 @@ export default function Messages() {
           const participants = thread.participantIds;
           const currentUser = extractUserIdFromToken(token);
           const otherUser = participants.find(id => id !== currentUser);
-          const userResponse = await fetch(`https://pawfect-match-zp0o.onrender.com/api/users/${otherUser}`, {
+          const userResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${otherUser}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (userResponse.ok) {
@@ -107,7 +107,7 @@ export default function Messages() {
 
     async function markAsRead() {
       try {
-        await fetch(`https://pawfect-match-zp0o.onrender.com/api/chat/threads/${threadId}/read`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/chat/threads/${threadId}/read`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -126,7 +126,7 @@ export default function Messages() {
     if (!threadId || !token) return;
 
     const stompClient = new Client({
-      brokerURL: 'https://pawfect-match-zp0o.onrender.com/chat',
+      brokerURL: `${import.meta.env.VITE_API_URL}/chat`,
       connectHeaders: { Authorization: `Bearer ${token}` },
       debug: (str) => console.log(str),
       reconnectDelay: 5000,
@@ -182,7 +182,7 @@ export default function Messages() {
     } else {
       console.error('STOMP client not connected, using REST fallback');
       try {
-        const response = await fetch(`https://pawfect-match-zp0o.onrender.com/test-send/${threadId}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/test-send/${threadId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
