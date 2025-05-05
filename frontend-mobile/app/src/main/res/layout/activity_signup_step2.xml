@@ -80,6 +80,7 @@
                 android:layout_gravity="center"
                 android:contentDescription="@string/nav_header_desc"
                 android:scaleType="centerCrop"
+                android:visibility="gone"
                 app:shapeAppearanceOverlay="@style/CircleImageView"
                 app:srcCompat="@drawable/defaultprofile" />
 
@@ -89,6 +90,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginBottom="24dp"
+                android:visibility="gone"
                 android:text="@string/upload_profile_picture"
                 android:textColor="@color/maroon"
                 android:textSize="14sp" />

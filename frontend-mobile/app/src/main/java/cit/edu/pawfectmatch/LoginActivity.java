@@ -275,7 +275,7 @@ public class LoginActivity extends AppCompatActivity {
     private void sendIdTokenToBackend(String idToken) {
         RequestBody idTokenBody = RequestBody.create(MediaType.parse("text/plain"), idToken);
         // Note: File upload is optional; passing null as no file is provided in this flow
-        Call<LoginResponse> call = apiService.firebaseLogin(idTokenBody, null);
+        Call<LoginResponse> call = apiService.firebaseLogin(idTokenBody);
         call.enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {

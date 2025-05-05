@@ -31,8 +31,8 @@ public interface ApiService {
     @Multipart
     @POST("auth/register")
     Call<Map<String, String>> register(
-            @Part("user") RequestBody userRequest,
-            @Part MultipartBody.Part file
+            @Part("user") RequestBody userRequest
+//            ,@Part MultipartBody.Part file
     );
 
     @GET("users/email/{email}")
@@ -81,8 +81,7 @@ public interface ApiService {
     @Multipart
     @POST("auth/firebase-login")
     Call<LoginResponse> firebaseLogin(
-            @Part("idToken") RequestBody idToken,
-            @Part MultipartBody.Part file
+            @Part("idToken") RequestBody idToken
     );
 
     @GET("pets/feed")
@@ -91,5 +90,13 @@ public interface ApiService {
             @Query("species") String species,
             @Query("page") int page,
             @Query("size") int size
+    );
+
+    @Multipart
+    @POST("pets/{petId}/photos")
+    Call<Map<String, String>> addPetPhoto(
+            @Header("Authorization") String authToken,
+            @Path("petId") String petId,
+            @Part MultipartBody.Part file
     );
 }
