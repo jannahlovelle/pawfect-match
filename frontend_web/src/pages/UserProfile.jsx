@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/UserProfile.css";
 import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, User, List, Plus } from 'lucide-react';
+import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
@@ -158,25 +158,39 @@ export default function UserProfile() {
       <Banner firstName={userDetails.fullName.split(' ')[0] || 'User'} onLogout={handleLogout} />
 
       <div className="main-content">
-
-        {/* Left Sidebar */}
-        <div className="sidebar left">
-          <Link to="/dashboard"><Home size={20} /> Home</Link>
-          <Link to="/search"><Search size={20} /> Search</Link>
-          <Link to="/notifications"><Bell size={20} /> Notifications</Link>
-          <Link to="/messages"><Mail size={20} /> Messages</Link>
-          <Link to="/settings"><Settings size={20} /> Settings</Link>
+        {/* Consolidated Left Sidebar */}
+        <div className="sidebar">
+          <div className="sidebar-section">
+            <h4>Menu</h4>
+            <Link to="/dashboard"><Home size={20} /> Home</Link>
+            <Link to="/search"><Search size={20} /> Search</Link>
+            <Link to="/notifications"><Bell size={20} /> Notifications</Link>
+            <Link to="/messages"><Mail size={20} /> Messages</Link>
+          </div>
+          
+          <div className="sidebar-section">
+            <h4>Pets</h4>
+            <Link to="/profile" className="active"><User size={20} /> Profile</Link>
+            <Link to="/pet-list"><List size={20} /> My Pet List</Link>
+            <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
+          </div>
+          
+          <div className="sidebar-section">
+            <h4>Account</h4>
+            <Link to="/settings"><Settings size={20} /> Settings</Link>
+            <a onClick={handleLogout} style={{cursor: 'pointer'}}><LogOut size={20} /> Logout</a>
+          </div>
         </div>
 
-        {/* Center Content */}
-        <div className="center-content">
+        {/* Expanded Center Content */}
+        <div className="center-content expanded">
           {loading ? (
             <div className="loading-spinner">Loading profile...</div>
           ) : error ? (
             <p className="error-message">{error}</p>
           ) : (
             <div className="profile-container">
-              {/* Fixed User Profile Section */}
+              {/* User Profile Section */}
               <div className="profile-header">
                 <div className="profile-image-container">
                   <img
@@ -194,17 +208,21 @@ export default function UserProfile() {
                 <div className="profile-info">
                   <h2 className="profile-name">{userDetails.fullName}</h2>
                   <p className="profile-email">{userDetails.email}</p>
-                  <p className="profile-phone">
-                    <span className="info-label">Phone:</span> {userDetails.phone || 'Not provided'}
-                  </p>
-                  <p className="profile-address">
-                    <span className="info-label">Address:</span> {userDetails.address || 'Not provided'}
-                  </p>
+                  <div className="profile-details-grid">
+                    <div className="detail-item">
+                      <span className="info-label">Phone:</span>
+                      <span className="info-value">{userDetails.phone || 'Not provided'}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="info-label">Address:</span>
+                      <span className="info-value">{userDetails.address || 'Not provided'}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Scrollable Pets Section */}
-              <div className="pets-section-container">
+              {/* Pets Section */}
+              <div className="pets-section">
                 <div className="section-header">
                   <h3>My Pets</h3>
                   <Link to="/add-pet" className="add-pet-button">
@@ -212,53 +230,44 @@ export default function UserProfile() {
                   </Link>
                 </div>
 
-                <div className="pets-scrollable-content">
-                  {petsLoading ? (
-                    <div className="loading-spinner">Loading pets...</div>
-                  ) : userPets.length > 0 ? (
-                    <div className="pets-grid">
-                      {userPets.map((pet) => (
-                        <div key={pet.petId} className="pet-card">
-                          <div className="pet-image-container">
-                            <img
-                              src={pet.photo}
-                              alt={pet.name}
-                              className="pet-image"
-                              onError={(e) => {
-                                e.target.src = defaultProfile;
-                              }}
-                            />
-                          </div>
-                          <div className="pet-info">
-                            <h4 className="pet-name">{pet.name}</h4>
-                            <p className="pet-details">
-                              <span className="pet-breed">{pet.breed}</span>
-                              {pet.species && <span className="pet-species"> • {pet.species}</span>}
-                            </p>
-                            {pet.age && <p className="pet-age">{pet.age} years old</p>}
-                          </div>
+                {petsLoading ? (
+                  <div className="loading-spinner">Loading pets...</div>
+                ) : userPets.length > 0 ? (
+                  <div className="pets-grid">
+                    {userPets.map((pet) => (
+                      <Link to={`/pet/${pet.petId}`} key={pet.petId} className="pet-card">
+                        <div className="pet-image-container">
+                          <img
+                            src={pet.photo}
+                            alt={pet.name}
+                            className="pet-image"
+                            onError={(e) => {
+                              e.target.src = defaultProfile;
+                            }}
+                          />
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-pets-message">
-                      <p>You haven't added any pets yet.</p>
-                      <Link to="/add-pet" className="add-pet-link">
-                        Add your first pet
+                        <div className="pet-info">
+                          <h4 className="pet-name">{pet.name}</h4>
+                          <div className="pet-details">
+                            <span className="pet-breed">{pet.breed}</span>
+                            {pet.species && <span className="pet-species"> • {pet.species}</span>}
+                          </div>
+                          {pet.age && <div className="pet-age">{pet.age} years old</div>}
+                        </div>
                       </Link>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="no-pets-message">
+                    <p>You haven't added any pets yet.</p>
+                    <Link to="/add-pet" className="add-pet-link">
+                      Add your first pet
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="sidebar right">
-          <Link to="/profile"><User size={20} /> Profile</Link>
-          <Link to="/pet-list"><List size={20} /> My Pet List</Link>
-          <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
         </div>
       </div>
     </div>
