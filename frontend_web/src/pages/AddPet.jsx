@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import "../styles/AddPet.css";
 import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, User, List, Plus, Camera } from 'lucide-react';
+import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut, Camera } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
 
 export default function AddPet() {
   const navigate = useNavigate();
@@ -75,6 +77,21 @@ export default function AddPet() {
 
   const handleCancel = () => {
     navigate("/profile");
+  };
+
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    if (!confirmLogout) return;
+
+    try {
+      await signOut(auth);
+      localStorage.clear();
+      alert("You have logged out successfully!");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed: ", error);
+      alert("Logout failed. Please try again.");
+    }
   };
 
   const handleSave = async (e) => {
@@ -157,272 +174,295 @@ export default function AddPet() {
 
   return (
     <div className="home-wrapper">
-      <Banner firstName={firstName} />
+      <Banner firstName={firstName} onLogout={handleLogout} />
 
       <div className="main-content">
-        {/* Left Sidebar */}
+        {/* Consolidated Left Sidebar */}
         <div className="sidebar">
-          <Link to="/home"><Home size={20} /> Home</Link>
-          <Link to="/search"><Search size={20} /> Search</Link>
-          <Link to="/notifications"><Bell size={20} /> Notifications</Link>
-          <Link to="/messages"><Mail size={20} /> Messages</Link>
-          <Link to="/settings"><Settings size={20} /> Settings</Link>
+          <div className="sidebar-section">
+            <h4>Menu</h4>
+            <Link to="/dashboard"><Home size={20} /> Home</Link>
+            <Link to="/search"><Search size={20} /> Search</Link>
+            <Link to="/notifications"><Bell size={20} /> Notifications</Link>
+            <Link to="/messages"><Mail size={20} /> Messages</Link>
+          </div>
+          
+          <div className="sidebar-section">
+            <h4>Pets</h4>
+            <Link to="/profile"><User size={20} /> Profile</Link>
+            <Link to="/pet-list"><List size={20} /> My Pet List</Link>
+            <Link to="/add-pet" className="active"><Plus size={20} /> Add Pet</Link>
+          </div>
+          
+          <div className="sidebar-section">
+            <h4>Account</h4>
+            <Link to="/settings"><Settings size={20} /> Settings</Link>
+            <a onClick={handleLogout} style={{cursor: 'pointer'}}><LogOut size={20} /> Logout</a>
+          </div>
         </div>
 
-        {/* Middle Content */}
-        <div className="center-content">
+        {/* Expanded Center Content */}
+        <div className="center-content expanded">
           <div className="add-pet-container">
             <h2 className="form-title">Add New Pet</h2>
             {error && <div className="error-message">{error}</div>}
 
-            {/* Fixed Photo Upload Section */}
-            <div className="fixed-upload-section">
-              <input
-                type="file"
-                id="pet-photo-upload"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ display: 'none' }}
-                disabled={isLoading}
-              />
-              <label htmlFor="pet-photo-upload" className="upload-label">
-                {photoFile ? (
-                  <div className="photo-preview-container">
-                    <img 
-                      src={URL.createObjectURL(photoFile)} 
-                      alt="Pet preview" 
-                      className="pet-photo-preview"
-                    />
-                    <div className="upload-overlay">
-                      <span>Change Photo</span>
+            <div className="form-grid-container">
+              {/* Photo Upload Section */}
+              <div className="photo-upload-section">
+                <input
+                  type="file"
+                  id="pet-photo-upload"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  style={{ display: 'none' }}
+                  disabled={isLoading}
+                />
+                <label htmlFor="pet-photo-upload" className="upload-label">
+                  {photoFile ? (
+                    <div className="photo-preview-container">
+                      <img 
+                        src={URL.createObjectURL(photoFile)} 
+                        alt="Pet preview" 
+                        className="pet-photo-preview"
+                      />
+                      <div className="upload-overlay">
+                        <span>Change Photo</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="upload-placeholder">
+                      <Camera size={48} className="camera-icon" />
+                      <p>Click to upload pet photo</p>
+                    </div>
+                  )}
+                </label>
+                <div className="upload-instructions">
+                  {photoFile ? (
+                    <button 
+                      className="remove-photo-button"
+                      onClick={() => setPhotoFile(null)}
+                      disabled={isLoading}
+                    >
+                      Remove Photo
+                    </button>
+                  ) : (
+                    <p className="file-requirements">JPEG or PNG, max 5MB</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Section */}
+              <div className="form-section">
+                <form onSubmit={handleSave}>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Name*</label>
+                      <input 
+                        type="text" 
+                        name="name" 
+                        value={petData.name} 
+                        onChange={handleInputChange} 
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Species</label>
+                      <select 
+                        name="species" 
+                        value={petData.species} 
+                        onChange={handleInputChange}
+                        disabled={isLoading}
+                      >
+                        <option value="Dog">Dog</option>
+                        <option value="Cat">Cat</option>
+                        <option value="Bird">Bird</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
                   </div>
-                ) : (
-                  <div className="upload-placeholder">
-                    <Camera size={48} className="camera-icon" />
-                    <p>Click to upload pet photo</p>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Breed*</label>
+                      <input 
+                        type="text" 
+                        name="breed" 
+                        value={petData.breed} 
+                        onChange={handleInputChange} 
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Gender*</label>
+                      <div className="radio-options">
+                        <label className="radio-label">
+                          <input 
+                            type="radio" 
+                            name="gender" 
+                            value="Male" 
+                            checked={petData.gender === "Male"} 
+                            onChange={handleInputChange} 
+                            disabled={isLoading}
+                            required
+                          />
+                          <span>Male</span>
+                        </label>
+                        <label className="radio-label">
+                          <input 
+                            type="radio" 
+                            name="gender" 
+                            value="Female" 
+                            checked={petData.gender === "Female"} 
+                            onChange={handleInputChange} 
+                            disabled={isLoading}
+                          />
+                          <span>Female</span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </label>
-              <div className="upload-instructions">
-                {photoFile ? (
-                  <button 
-                    className="remove-photo-button"
-                    onClick={() => setPhotoFile(null)}
-                    disabled={isLoading}
-                  >
-                    Remove Photo
-                  </button>
-                ) : (
-                  <p className="file-requirements">JPEG or PNG, max 5MB</p>
-                )}
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Date of Birth</label>
+                      <input 
+                        type="date" 
+                        name="dateOfBirth" 
+                        value={petData.dateOfBirth} 
+                        onChange={handleInputChange} 
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Age</label>
+                      <input 
+                        type="number" 
+                        name="age" 
+                        value={petData.age} 
+                        onChange={handleInputChange} 
+                        disabled
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Weight (kg)</label>
+                      <input 
+                        type="number" 
+                        name="weight" 
+                        value={petData.weight} 
+                        onChange={handleInputChange} 
+                        disabled={isLoading}
+                        step="0.1"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Color</label>
+                      <input 
+                        type="text" 
+                        name="color" 
+                        value={petData.color} 
+                        onChange={handleInputChange} 
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea 
+                      name="description" 
+                      value={petData.description} 
+                      onChange={handleInputChange} 
+                      disabled={isLoading}
+                      rows="3"
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Availability Status</label>
+                      <select 
+                        name="availabilityStatus" 
+                        value={petData.availabilityStatus} 
+                        onChange={handleInputChange}
+                        disabled={isLoading}
+                      >
+                        <option value="available">Available</option>
+                        <option value="unavailable">Unavailable</option>
+                        <option value="pending">Pending</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Price (₱)</label>
+                      <input 
+                        type="number" 
+                        name="price" 
+                        value={petData.price} 
+                        onChange={handleInputChange} 
+                        disabled={isLoading}
+                        step="0.01"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Pedigree Information</label>
+                      <input 
+                        type="text" 
+                        name="pedigreeInfo" 
+                        value={petData.pedigreeInfo} 
+                        onChange={handleInputChange} 
+                        disabled={isLoading}
+                        placeholder="e.g. AKC registered"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Health Status</label>
+                      <input 
+                        type="text" 
+                        name="healthStatus" 
+                        value={petData.healthStatus} 
+                        onChange={handleInputChange} 
+                        disabled={isLoading}
+                        placeholder="e.g. Vaccinated and healthy"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-buttons">
+                    <button 
+                      type="button"
+                      className="cancel-btn" 
+                      onClick={handleCancel}
+                      disabled={isLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="save-btn" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Saving...' : 'Save Pet'}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
-
-            {/* Scrollable Form Section */}
-            <div className="scrollable-form-section">
-              <form className="pet-info-form" onSubmit={handleSave}>
-                <div className="form-group">
-                  <label>Name*</label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    value={petData.name} 
-                    onChange={handleInputChange} 
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Species</label>
-                  <select 
-                    name="species" 
-                    value={petData.species} 
-                    onChange={handleInputChange}
-                    disabled={isLoading}
-                  >
-                    <option value="Dog">Dog</option>
-                    <option value="Cat">Cat</option>
-                    <option value="Bird">Bird</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Breed*</label>
-                  <input 
-                    type="text" 
-                    name="breed" 
-                    value={petData.breed} 
-                    onChange={handleInputChange} 
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-group gender-group">
-                  <label>Gender*</label>
-                  <div className="radio-options">
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="gender" 
-                        value="Male" 
-                        checked={petData.gender === "Male"} 
-                        onChange={handleInputChange} 
-                        disabled={isLoading}
-                      />
-                      <span>Male</span>
-                    </label>
-                    <label className="radio-label">
-                      <input 
-                        type="radio" 
-                        name="gender" 
-                        value="Female" 
-                        checked={petData.gender === "Female"} 
-                        onChange={handleInputChange} 
-                        disabled={isLoading}
-                      />
-                      <span>Female</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Date of Birth</label>
-                  <input 
-                    type="date" 
-                    name="dateOfBirth" 
-                    value={petData.dateOfBirth} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Age</label>
-                  <input 
-                    type="number" 
-                    name="age" 
-                    value={petData.age} 
-                    onChange={handleInputChange} 
-                    disabled
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Weight (kg)</label>
-                  <input 
-                    type="number" 
-                    name="weight" 
-                    value={petData.weight} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                    step="0.1"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Color</label>
-                  <input 
-                    type="text" 
-                    name="color" 
-                    value={petData.color} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="form-group full-width">
-                  <label>Description</label>
-                  <textarea 
-                    name="description" 
-                    value={petData.description} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                    rows="3"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Availability Status</label>
-                  <select 
-                    name="availabilityStatus" 
-                    value={petData.availabilityStatus} 
-                    onChange={handleInputChange}
-                    disabled={isLoading}
-                  >
-                    <option value="available">Available</option>
-                    <option value="unavailable">Unavailable</option>
-                    <option value="pending">Pending</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Price (₱)</label>
-                  <input 
-                    type="number" 
-                    name="price" 
-                    value={petData.price} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Pedigree Information</label>
-                  <input 
-                    type="text" 
-                    name="pedigreeInfo" 
-                    value={petData.pedigreeInfo} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                    placeholder="e.g. AKC registered"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Health Status</label>
-                  <input 
-                    type="text" 
-                    name="healthStatus" 
-                    value={petData.healthStatus} 
-                    onChange={handleInputChange} 
-                    disabled={isLoading}
-                    placeholder="e.g. Vaccinated and healthy"
-                  />
-                </div>
-
-                <div className="form-buttons">
-                  <button 
-                    type="button"
-                    className="cancel-btn" 
-                    onClick={handleCancel}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="save-btn" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Saving...' : 'Save Pet'}
-                  </button>
-                </div>
-              </form>
-            </div>
           </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="sidebar right">
-          <Link to="/profile"><User size={20} /> Profile</Link>
-          <Link to="/pet-list"><List size={20} /> My Pet List</Link>
-          <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
         </div>
       </div>
     </div>

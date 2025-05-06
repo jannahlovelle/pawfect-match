@@ -32,7 +32,7 @@ export default function EditProfile() {
       }
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}users/me`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
