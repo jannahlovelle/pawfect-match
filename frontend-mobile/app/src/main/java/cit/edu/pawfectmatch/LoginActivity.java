@@ -108,11 +108,11 @@ public class LoginActivity extends AppCompatActivity {
                     if (password.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
                         // Show password
                         password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                        password.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.visibility_off_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
+                        password.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.visibility_off_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
                     } else {
                         // Hide password
                         password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                        password.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
+                        password.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
                     }
                     // Move cursor to the end
                     password.setSelection(password.getText().length());
@@ -156,9 +156,15 @@ public class LoginActivity extends AppCompatActivity {
             String strpassword = password.getText().toString().trim();
 
             if (stremail.isEmpty() || strpassword.isEmpty()) {
-                errtxt.setVisibility(View.VISIBLE);
-                errtxt.setText("Please enter both email and password");
+                email.setError("Please enter both email and password");
+                password.setError("Please enter both email and password");
+//                errtxt.setVisibility(View.VISIBLE);
+//                errtxt.setText("Please enter both email and password");
                 Toast.makeText(LoginActivity.this, "Please enter both email and password", Toast.LENGTH_SHORT).show();
+            } else if (stremail.isEmpty()){
+                email.setError("Please enter email");
+            } else if (strpassword.isEmpty()) {
+                password.setError("Please enter password");
             } else {
                 loginUser(stremail, strpassword);
             }

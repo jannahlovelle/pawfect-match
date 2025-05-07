@@ -10,9 +10,12 @@ import android.provider.MediaStore;
 import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +29,7 @@ import com.google.gson.GsonBuilder;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import cit.edu.pawfectmatch.LoginActivity;
@@ -45,11 +49,13 @@ import okhttp3.OkHttpClient;
 
 public class SignupStep2Activity extends AppCompatActivity {
 
+    private FrameLayout signupButtonWrapper;
     private EditText passwordEditText, confirmPasswordEditText;
     private Button signUpButton;
     private ImageView profileImageView;
     private TextView selectProfilePic;
-    private TextView errorTxt;
+    private TextView errorTxt, signUpButtonText;
+    private ProgressBar signupButtonSpinner;
     private ApiService apiService;
     private Uri profileImageUri = null;
 
@@ -78,7 +84,11 @@ public class SignupStep2Activity extends AppCompatActivity {
 
         passwordEditText = findViewById(R.id.signup_password);
         confirmPasswordEditText = findViewById(R.id.signup_confirmPassword);
-        signUpButton = findViewById(R.id.signupButton);
+//        signUpButton = findViewById(R.id.signupButton);
+
+        signupButtonWrapper = findViewById(R.id.signup_button_wrapper);
+        signUpButtonText=findViewById(R.id.signup_button_text);
+        signupButtonSpinner=findViewById(R.id.signup_button_spinner);
         profileImageView = findViewById(R.id.profileImageView);
         selectProfilePic = findViewById(R.id.selectProfilePic);
         errorTxt = findViewById(R.id.signup2_error);
@@ -105,10 +115,10 @@ public class SignupStep2Activity extends AppCompatActivity {
                 if (event.getRawX() >= (passwordEditText.getRight() - passwordEditText.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                     if (passwordEditText.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
                         passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                        passwordEditText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.visibility_off_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
+                        passwordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.visibility_off_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
                     } else {
                         passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                        passwordEditText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
+                        passwordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
                     }
                     passwordEditText.setSelection(passwordEditText.getText().length());
                     return true;
@@ -124,10 +134,10 @@ public class SignupStep2Activity extends AppCompatActivity {
                 if (event.getRawX() >= (confirmPasswordEditText.getRight() - confirmPasswordEditText.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                     if (confirmPasswordEditText.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
                         confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                        confirmPasswordEditText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.visibility_off_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
+                        confirmPasswordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.visibility_off_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
                     } else {
                         confirmPasswordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                        confirmPasswordEditText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
+                        confirmPasswordEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24, 0);
                     }
                     confirmPasswordEditText.setSelection(confirmPasswordEditText.getText().length());
                     return true;
@@ -141,12 +151,14 @@ public class SignupStep2Activity extends AppCompatActivity {
         profileImageView.setOnClickListener(v -> openImagePicker());
 
         // Signup
-        signUpButton.setOnClickListener(v -> {
+        signupButtonWrapper.setOnClickListener(v -> {
             String password = passwordEditText.getText().toString().trim();
             String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
             if (password.isEmpty() || confirmPassword.isEmpty()) {
-                errorTxt.setText("Please fill both password fields");
+//                errorTxt.setText("Please fill both password fields");
+                passwordEditText.setError("Please fill both password fields");
+                confirmPasswordEditText.setError("Please fill both password fields");
                 Toast.makeText(this, "Please fill both password fields", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -220,6 +232,11 @@ public class SignupStep2Activity extends AppCompatActivity {
 
     private void registerUser(String firstName, String lastName, String email, String phone,
                               String address, String password) {
+
+        signUpButtonText.setVisibility(View.GONE);
+        signupButtonSpinner.setVisibility(View.VISIBLE);
+        signupButtonWrapper.setEnabled(false);
+
         RegisterRequest request = new RegisterRequest(firstName, lastName, email, phone,
                 address, password, "USER");
 
@@ -242,8 +259,12 @@ public class SignupStep2Activity extends AppCompatActivity {
                     String errorMessage = "Registration failed: " + (response.message() != null ? response.message() : "Unknown error");
                     Log.e("Signup", errorMessage);
                     errorTxt.setText(errorMessage);
+                    signUpButtonText.setVisibility(View.VISIBLE);
+                    signupButtonSpinner.setVisibility(View.GONE);
+                    signupButtonWrapper.setEnabled(true);
                     Toast.makeText(SignupStep2Activity.this, errorMessage, Toast.LENGTH_SHORT).show();
                 }
+
             }
 
             @Override
@@ -251,8 +272,12 @@ public class SignupStep2Activity extends AppCompatActivity {
                 String failMsg = "Network error: " + t.getMessage();
                 Log.e("Signup", failMsg, t);
                 errorTxt.setText("Registration failed due to network error");
+                signUpButtonText.setVisibility(View.VISIBLE);
+                signupButtonSpinner.setVisibility(View.GONE);
+                signupButtonWrapper.setEnabled(true);
                 Toast.makeText(SignupStep2Activity.this, failMsg, Toast.LENGTH_SHORT).show();
             }
+
         });
     }
 
