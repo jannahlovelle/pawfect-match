@@ -80,9 +80,13 @@ public interface ApiService {
     // New endpoint for Firebase login
     @Multipart
     @POST("auth/firebase-login")
-    Call<LoginResponse> firebaseLogin(
-            @Part("idToken") RequestBody idToken
+    Call<LoginResponse> firebaseLoginMultipart(
+            @Part MultipartBody.Part idToken,
+            @Part MultipartBody.Part file
     );
+
+    @POST("auth/firebase-login")
+    Call<LoginResponse> firebaseLoginJson(@Body Map<String, String> request);
 
     @GET("pets/feed")
     Call<List<PetFeedResponse>> getPetsForFeed(
