@@ -1,177 +1,305 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import "../styles/EditUserProfile.css";
-import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, User, List, Plus } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
 import defaultProfilePic from '../assets/defaultprofileimage.png';
-import { onAuthStateChanged } from "firebase/auth"; // 🔥 added
-import { auth } from "../firebase"; // 🔥 added
 
-export default function EditUserProfile() {
+export default function EditProfile() {
   const navigate = useNavigate();
-  const firstName = localStorage.getItem("firstName");
-  const [selectedImage, setSelectedImage] = useState(null);
-
+  const { state } = useLocation();
+  const { onProfileUpdated } = state || {};
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    password: '',
+    confirmPassword: ''
   });
+  const [profileImage, setProfileImage] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [userId, setUserId] = useState('');
 
-  // Load image and form data
+  // Load initial form data
   useEffect(() => {
-    const savedImage = localStorage.getItem("profileImage");
-    if (savedImage) {
-      setSelectedImage(savedImage);
-    }
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
 
-    const savedFormData = {
-      firstName: localStorage.getItem("firstName") || '',
-      lastName: localStorage.getItem("lastName") || '',
-      email: localStorage.getItem("email") || '',
-      phone: localStorage.getItem("phone") || '',
-      address: localStorage.getItem("address") || ''
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem("token");
+            navigate("/login");
+            throw new Error("Session expired. Please log in again.");
+          }
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch user profile");
+        }
+
+        const userProfile = await response.json();
+        console.log("API Response:", userProfile); // Debug log
+        
+        setUserId(userProfile.user?.userID || '');
+        setFormData({
+          firstName: userProfile.user?.firstName || '',
+          lastName: userProfile.user?.lastName || '',
+          email: userProfile.user?.email || '',
+          phone: userProfile.user?.phone || '',
+          address: userProfile.user?.address || '',
+          password: '',
+          confirmPassword: ''
+        });
+        setProfileImage(userProfile.user?.profilePicture || '');
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setError(err.message);
+      }
     };
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setFormData({
-          firstName: savedFormData.firstName || (user.displayName?.split(' ')[0] || ''),
-          lastName: savedFormData.lastName || (user.displayName?.split(' ')[1] || ''),
-          email: savedFormData.email || (user.email || ''),
-          phone: savedFormData.phone,
-          address: savedFormData.address
-        });
-      } else {
-        setFormData(savedFormData);
-      }
-    });
-  }, []);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result);
-        localStorage.setItem("profileImage", reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+    fetchProfile();
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    // Validate file
+    const validTypes = ['image/jpeg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      setError("Please upload a JPEG or PNG image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size exceeds 5MB limit.");
+      return;
+    }
+
+    setImageLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${userId}/profile-picture`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to upload profile picture");
+      }
+
+      const updatedUser = await response.json();
+      setProfileImage(updatedUser.profilePicture || '');
+      alert("Profile picture updated successfully!");
+    } catch (err) {
+      console.error("Error uploading profile picture:", err);
+      setError(err.message);
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    // Password validation
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      setLoading(false);
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      // Prepare update data (only include password if provided)
+      const updateData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        address: formData.address,
+        ...(formData.password && { password: formData.password }) // Only include if not empty
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/update/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update profile");
+      }
+
+      const result = await response.json();
+      alert(result.message || "Profile updated successfully");
+      if (onProfileUpdated) onProfileUpdated();
+      navigate("/profile");
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
     navigate("/profile");
   };
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    // Save to localStorage
-    Object.keys(formData).forEach(key => {
-      localStorage.setItem(key, formData[key]);
-    });
-
-    alert("Profile changes saved!");
-    navigate("/profile");
-  };
-
   return (
     <div className="home-wrapper">
-      <Banner firstName={firstName} />
-
       <div className="main-content">
-        {/* Left Sidebar */}
-        <div className="sidebar">
-          <Link to="/home"><Home size={20} /> Home</Link>
-          <Link to="/search"><Search size={20} /> Search</Link>
-          <Link to="/notifications"><Bell size={20} /> Notifications</Link>
-          <Link to="/messages"><Mail size={20} /> Messages</Link>
-          <Link to="/settings"><Settings size={20} /> Settings</Link>
-        </div>
-
-        {/* Center - Editable Profile */}
-        <div className="center-content">
+        <div className="editcenter-content">
           <div className="edit-profile-container">
-            <img 
-              src={selectedImage || defaultProfilePic} 
-              alt="Profile" 
-              className="profile-pic" 
-            />
-            <label className="change-photo-btn">
-              Change photo
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageChange} 
-                style={{ display: 'none' }} 
+            <h2>Edit Profile</h2>
+            {error && <p className="error">{error}</p>}
+            <div className="profile-pic-section">
+              <img
+                src={profileImage || defaultProfilePic}
+                alt="Profile"
+                className="profile-pic"
+                onError={(e) => {
+                  e.target.src = defaultProfilePic;
+                }}
               />
-            </label>
-
-            <form onSubmit={handleSave} className="form-group">
-              <input
-                type="text"
-                name="firstName"
-                placeholder="Enter first name"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="text"
-                name="lastName"
-                placeholder="Enter last name"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter email address"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Enter phone number"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="text"
-                name="address"
-                placeholder="Enter address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
-
-              <div className="form-buttons">
-                <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                <button type="submit" className="save-btn">Save changes</button>
+              <label className="change-photo-btn">
+                {imageLoading ? 'Uploading...' : 'Change Photo'}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleImageChange}
+                  disabled={imageLoading}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+            <form onSubmit={handleSubmit} className="edit-profile-form">
+              <div className="form-group">
+                <label htmlFor="firstName">First Name*</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="email">Email*</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  disabled // Typically email shouldn't be editable
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="phone">Phone</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="address">Address</label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="password">New Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Leave blank to keep current"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Only needed if changing password"
+                />
+              </div>
+              <div className="form-actions">
+                <button type="submit" className="save-btn" disabled={loading || imageLoading}>
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button type="button" className="cancel-btn" onClick={handleCancel} disabled={loading || imageLoading}>
+                  Cancel
+                </button>
               </div>
             </form>
           </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="sidebar right">
-          <Link to="/profile"><User size={20} /> Profile</Link>
-          <Link to="/pet-list"><List size={20} /> My Pet List</Link>
-          <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
         </div>
       </div>
     </div>

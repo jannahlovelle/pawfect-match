@@ -10,12 +10,13 @@ public class CreatePetRequest {
     private String name;
 
     @NotBlank(message = "Species is required")
-    @Pattern(regexp = "Dog|Cat|Bird|Other", message = "Species must be one of: Dog, Cat, Bird, Other")
+    @Pattern(regexp = "(?i)^(Dog|Cat|Bird|Other)$", message = "Species must be one of: Dog, Cat, Bird, Other")
     private String species;
+    @NotBlank(message = "Breed is required")
     private String breed;
 
     @NotBlank(message = "Gender is required")
-    @Pattern(regexp = "Male|Female", message = "Gender must be one of: Male, Female")
+    @Pattern(regexp = "(?i)^(Male|Female)$", message = "Gender must be one of: Male, Female")
     private String gender;
     private Date dateOfBirth;
     private double weight;

@@ -58,11 +58,16 @@ public class AuthController {
     }
 
     @PostMapping("/firebase-login")
-    public ResponseEntity<Map<String, String>> firebaseLogin(
-            @RequestPart("idToken") String idToken,
-            @RequestPart(value = "file", required = false) MultipartFile file) {
+    public ResponseEntity<Map<String, String>> firebaseLogin(@RequestBody Map<String, String> request) {
         try {
-            Map<String, String> response = authService.firebaseLogin(idToken, file);
+            String idToken = request.get("idToken");
+            if (idToken == null || idToken.trim().isEmpty()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("status", "error");
+                errorResponse.put("message", "ID token is required");
+                return ResponseEntity.status(400).body(errorResponse);
+            }
+            Map<String, String> response = authService.firebaseLogin(idToken, null); // No file for login
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();

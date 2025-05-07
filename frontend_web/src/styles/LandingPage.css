@@ -1,0 +1,163 @@
+.landing-page {
+    position: relative;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+  
+  .background-image {
+    background-image: url('../assets/background.png');
+    background-size: contain;
+    background-position: center;
+    opacity: 0.3; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+  }
+  
+  .foreground-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .landing-content-container {
+    margin-left: 75px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; 
+  }
+  
+  .image-section {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  
+  .image-wrapper {
+    max-width: 1000px;
+    overflow: visible;
+  }
+  
+  .pet-image {
+    width: 1000px;
+    height: 1000px;
+    max-width: 1000px; /* Increase size cap */
+    object-fit: contain;
+    display: block;
+  }
+  
+  /* Ensure content is above the blur */
+  .navbar,
+  .hero-section {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #6b3f43;
+    padding: 1rem 2rem;
+  }
+    
+  .navbar-left {
+    display: flex;
+    align-items: center;
+  }
+    
+  .logo {
+    width: 80px;
+    height: 80px;
+    margin-right: 0.5rem;
+  }
+    
+  .site-name {
+    color: white;
+    font-weight: bold;
+    font-size: 1.3rem;
+  }
+    
+  .navbar-right a {
+    color: white;
+    margin: 0 1rem;
+    text-decoration: none;
+    font-weight: 500;
+  }
+    
+  .login-btn,
+  .signup-btn {
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+  }
+    
+  .login-btn {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+  }
+    
+  .signup-btn {
+    background-color: #f4ae91;
+    color: #4d2f32;
+  }
+    
+  .hero-section {
+    max-width: 700px;
+    margin: 4rem 2rem;
+  }
+    
+  .find-btn {
+    background-color: #f4ae91;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #4d2f32;
+  }
+    
+  .hero-section h1 {
+    font-size: 3.8rem;
+    color: #4d2f32;
+    margin-bottom: 4rem;
+    font-weight: bold;
+  }
+    
+  .hero-section p {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 3rem;
+  }
+    
+  .cta-buttons button {
+    margin-right: 1rem;
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+    
+  .get-started {
+    background-color: #6b3f43;
+    color: white;
+  }
+    
+  .learn-more {
+    background-color: white;
+    color: #6b3f43;
+    border: 1px solid #6b3f43;
+  }
+  

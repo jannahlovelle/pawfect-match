@@ -1,6 +1,7 @@
 package cit.edu.pawfect.match.service;
 
 import cit.edu.pawfect.match.dto.CreatePetRequest;
+import cit.edu.pawfect.match.dto.PetFeedResponse;
 import cit.edu.pawfect.match.dto.UpdatePetRequest;
 import cit.edu.pawfect.match.entity.Pet;
 import cit.edu.pawfect.match.entity.Photo;
@@ -17,9 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PetService {
@@ -38,13 +41,11 @@ public class PetService {
     @Autowired
     private Cloudinary cloudinary;
 
-    // Sanitize file name for Cloudinary public_id
     private String sanitizeFileName(String fileName) {
         if (fileName == null) return "unnamed_" + UUID.randomUUID().toString().substring(0, 8);
-        // Remove extension, invalid characters, and trim
-        String name = fileName.replaceFirst("[.][^.]+$", "") // Remove extension
-                .replaceAll("[^a-zA-Z0-9_-]", "_") // Replace invalid chars with _
-                .replaceAll("_+", "_") // Replace multiple _ with single _
+        String name = fileName.replaceFirst("[.][^.]+$", "")
+                .replaceAll("[^a-zA-Z0-9_-]", "_")
+                .replaceAll("_+", "_")
                 .trim();
         return name.isEmpty() ? "unnamed_" + UUID.randomUUID().toString().substring(0, 8) : name;
     }
@@ -61,18 +62,18 @@ public class PetService {
                     logger.info("Found existing public_id: {}", publicId);
                     suffix++;
                     publicId = basePublicId + "_" + suffix;
-                    break; // Found existing, try next suffix
+                    break;
                 } catch (Exception e) {
                     if (e.getMessage().contains("not found")) {
                         logger.info("Public_id available: {}", publicId);
-                        return publicId; // Available, use it
+                        return publicId;
                     }
                     logger.error("Error checking Cloudinary public_id: {}, attempt: {}, error: {}", publicId, attempt, e.getMessage());
                     if (attempt == maxRetries) {
                         throw new IOException("Failed to verify public_id after " + maxRetries + " attempts: " + e.getMessage());
                     }
                     try {
-                        Thread.sleep(500); // Wait before retry
+                        Thread.sleep(500);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                         throw new IOException("Interrupted during public_id check: " + ie.getMessage());
@@ -348,10 +349,9 @@ public class PetService {
     
         deletePhotoFromCloudinary(photo);
     
-        String fileName = sanitizeFileName(file.getOriginalFilename()); // e.g., "dog"
-        String basePublicId = "pawfectmatch/pets/" + fileName; // e.g., "pawfectmatch/pets/dog"
+        String fileName = sanitizeFileName(file.getOriginalFilename());
+        String basePublicId = "pawfectmatch/pets/" + fileName;
     
-        // Now, just let getUniquePublicId handle all collision avoidance
         String publicId = getUniquePublicId(basePublicId, pet.getPetId());
     
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
@@ -457,5 +457,41 @@ public class PetService {
         } else {
             logger.info("No Cloudinary public_id for photoId: {}, skipping Cloudinary deletion", photo.getPhotoId());
         }
+    }
+
+    public List<PetFeedResponse> getPetsForFeed(String species, int page, int size) {
+        List<Pet> pets;
+        if (species != null && !species.trim().isEmpty()) {
+            pets = petRepository.findBySpeciesAndAvailabilityStatus(species, "available");
+        } else {
+            pets = petRepository.findByAvailabilityStatus("available");
+        }
+
+        List<Pet> petsWithPhotos = pets.stream()
+                .filter(pet -> !photoRepository.findByPetId(pet.getPetId()).isEmpty())
+                .collect(Collectors.toList());
+
+        int start = page * size;
+        int end = Math.min(start + size, petsWithPhotos.size());
+        if (start >= petsWithPhotos.size()) {
+            return new ArrayList<>();
+        }
+        petsWithPhotos = petsWithPhotos.subList(start, end);
+
+        List<PetFeedResponse> feed = petsWithPhotos.stream().map(pet -> {
+            List<Photo> photos = photoRepository.findByPetId(pet.getPetId());
+            String photoUrl = photos.get(0).getUrl();
+            return new PetFeedResponse(
+                pet.getPetId(),
+                pet.getName(),
+                pet.getSpecies(),
+                pet.getBreed(),
+                photoUrl,
+                pet.getDescription()
+            );
+        }).collect(Collectors.toList());
+
+        logger.info("Retrieved {} pets for feed, species: {}, page: {}, size: {}", feed.size(), species != null ? species : "all", page, size);
+        return feed;
     }
 }

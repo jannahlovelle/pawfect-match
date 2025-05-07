@@ -79,7 +79,7 @@ export default function Signup() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/auth/register", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
@@ -104,7 +104,7 @@ export default function Signup() {
       <div className="left-section">
         <div className="background-overlay"></div>
         <div className="logo-container">
-          <img src={logo} alt="Logo" className="logo" />
+          <img src={logo} alt="Logo" className="loginsidelogo" />
         </div>
       </div>
 
