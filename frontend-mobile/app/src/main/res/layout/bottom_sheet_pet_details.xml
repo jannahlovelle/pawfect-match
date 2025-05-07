@@ -24,9 +24,19 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="8dp"
             android:src="@drawable/defaultprofile"
             app:shapeAppearanceOverlay="@style/CircleImageView" />
+
+        <Button
+            android:id="@+id/bspet_upload_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="@color/primary"
+            android:text="Upload Photo"
+            android:textColor="@color/white" />
 
         <TextView
             android:id="@+id/bspet_error"
@@ -35,7 +45,7 @@
             android:textColor="@color/google_red"
             android:visibility="gone" />
 
-        <!-- Section One: Name, Breed, Species (Left Column), Gender, Birthday (Right Column) -->
+        <!-- Section One: Name, Breed, Species, Gender, Birthday (Single Vertical Column) -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -45,235 +55,216 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"
+                android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Left Column: Name, Breed, Species -->
-                <LinearLayout
-                    android:layout_width="0dp"
+                <!-- Name (View Mode) -->
+                <TextView
+                    android:id="@+id/bspet_name_label"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:paddingBottom="4dp"
+                    android:text="Name:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold" />
 
-                    <!-- Name (View Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_name_label"
+                <TextView
+                    android:id="@+id/bspet_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="16dp"
+                    android:text="Name"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <!-- Name (Edit Mode) -->
+                <TextView
+                    android:id="@+id/bspet_name_edit_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Name:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <EditText
+                    android:id="@+id/bspet_name_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Name"
+                    android:paddingBottom="16dp"
+                    android:visibility="gone" />
+
+                <!-- Breed (View Mode) -->
+                <TextView
+                    android:id="@+id/bspet_breed_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Breed:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bspet_breed"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="16dp"
+                    android:text="Breed"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <!-- Breed (Edit Mode) -->
+                <TextView
+                    android:id="@+id/bspet_breed_edit_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Breed:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <EditText
+                    android:id="@+id/bspet_breed_edit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Breed"
+                    android:paddingBottom="16dp"
+                    android:visibility="gone" />
+
+                <!-- Species (View Mode) -->
+                <TextView
+                    android:id="@+id/bspet_species_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Species:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bspet_species"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="16dp"
+                    android:text="Species"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <!-- Species (Edit Mode) -->
+                <TextView
+                    android:id="@+id/bspet_species_edit_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Species:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/bspet_species_layout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Species"
+                    android:visibility="gone">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/bspet_species_edit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Name:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold" />
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                    <TextView
-                        android:id="@+id/bspet_name"
+                <!-- Gender (View Mode) -->
+                <TextView
+                    android:id="@+id/bspet_gender_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Gender:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bspet_gender"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="16dp"
+                    android:text="Gender"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <!-- Gender (Edit Mode) -->
+                <TextView
+                    android:id="@+id/bspet_gender_edit_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Gender:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/bspet_gender_layout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Gender"
+                    android:visibility="gone">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/bspet_gender_edit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:text="Name"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
+                        android:inputType="none" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Name (Edit Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_name_edit_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Name:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
+                <!-- Birthday (View Mode) -->
+                <TextView
+                    android:id="@+id/bspet_birthday_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Birthday:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bspet_birthday"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="16dp"
+                    android:text="Birthday"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                <!-- Birthday (Edit Mode) -->
+                <TextView
+                    android:id="@+id/bspet_birthday_edit_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="4dp"
+                    android:text="Birthday:"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/bspet_birthday_edit_layout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Birthday (YYYY-MM-DD)"
+                    android:visibility="gone">
 
                     <EditText
-                        android:id="@+id/bspet_name_edit"
+                        android:id="@+id/bspet_birthday_edit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Name"
-                        android:paddingBottom="16dp"
-                        android:visibility="gone" />
-
-                    <!-- Breed (View Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_breed_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Breed:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/bspet_breed"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:text="Breed"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                    <!-- Breed (Edit Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_breed_edit_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Breed:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-
-                    <EditText
-                        android:id="@+id/bspet_breed_edit"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Breed"
-                        android:paddingBottom="16dp"
-                        android:visibility="gone" />
-
-                    <!-- Species (View Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_species_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Species:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/bspet_species"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:text="Species"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                    <!-- Species (Edit Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_species_edit_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Species:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/bspet_species_layout"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Species"
-                        android:visibility="gone">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/bspet_species_edit"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="none" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
-
-                <!-- Right Column: Gender, Birthday -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <!-- Gender (View Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_gender_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Gender:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/bspet_gender"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:text="Gender"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                    <!-- Gender (Edit Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_gender_edit_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Gender:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/bspet_gender_layout"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Gender"
-                        android:visibility="gone">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/bspet_gender_edit"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="none" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Birthday (View Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_birthday_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Birthday:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/bspet_birthday"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:text="Birthday"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-                    <!-- Birthday (Edit Mode) -->
-                    <TextView
-                        android:id="@+id/bspet_birthday_edit_label"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="4dp"
-                        android:text="Birthday:"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textStyle="bold"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/bspet_birthday_edit_layout"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Birthday (YYYY-MM-DD)"
-                        android:visibility="gone">
-
-                        <EditText
-                            android:id="@+id/bspet_birthday_edit"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:focusable="false"
-                            android:inputType="date"
-                            android:paddingBottom="16dp" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                </LinearLayout>
+                        android:focusable="false"
+                        android:inputType="date"
+                        android:paddingBottom="16dp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
@@ -291,6 +282,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
+
                 <!-- Weight (View Mode) -->
                 <TextView
                     android:id="@+id/bspet_weight_label"
@@ -308,6 +300,7 @@
                     android:paddingBottom="16dp"
                     android:text="Weight"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
+
                 <!-- Color (View Mode) -->
                 <TextView
                     android:id="@+id/bspet_color_label"
@@ -325,6 +318,7 @@
                     android:paddingBottom="16dp"
                     android:text="Color"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
+
                 <!-- Description (View Mode) -->
                 <TextView
                     android:id="@+id/bspet_desc_label"
@@ -342,6 +336,7 @@
                     android:paddingBottom="16dp"
                     android:text="Description"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
+
                 <!-- Weight (Edit Mode) -->
                 <TextView
                     android:id="@+id/bspet_weight_edit_label"
@@ -361,6 +356,7 @@
                     android:inputType="numberDecimal"
                     android:paddingBottom="16dp"
                     android:visibility="gone" />
+
                 <!-- Color (Edit Mode) -->
                 <TextView
                     android:id="@+id/bspet_color_edit_label"
@@ -379,6 +375,7 @@
                     android:hint="Color"
                     android:paddingBottom="16dp"
                     android:visibility="gone" />
+
                 <!-- Description (Edit Mode) -->
                 <TextView
                     android:id="@+id/bspet_desc_edit_label"
@@ -415,6 +412,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
+
                 <!-- Availability (View Mode) -->
                 <TextView
                     android:id="@+id/bspet_availability_label"
@@ -432,6 +430,7 @@
                     android:paddingBottom="16dp"
                     android:text="Availability"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
+
                 <!-- Price (View Mode) -->
                 <TextView
                     android:id="@+id/bspet_price_label"
@@ -449,6 +448,7 @@
                     android:paddingBottom="16dp"
                     android:text="Price"
                     android:textAppearance="?android:attr/textAppearanceMedium" />
+
                 <!-- Availability (Edit Mode) -->
                 <TextView
                     android:id="@+id/bspet_availability_edit_label"
@@ -474,6 +474,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="none" />
                 </com.google.android.material.textfield.TextInputLayout>
+
                 <!-- Price (Edit Mode) -->
                 <TextView
                     android:id="@+id/bspet_price_edit_label"
@@ -581,7 +582,6 @@
                     android:visibility="gone" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
 
         <!-- Buttons -->
         <Button

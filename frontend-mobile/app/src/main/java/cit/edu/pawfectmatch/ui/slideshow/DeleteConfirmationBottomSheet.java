@@ -1,6 +1,5 @@
 package cit.edu.pawfectmatch.ui.slideshow;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,8 +11,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -41,20 +38,9 @@ public class DeleteConfirmationBottomSheet extends BottomSheetDialogFragment {
         return fragment;
     }
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        Fragment parentFragment = getParentFragment();
-        Log.d(TAG, "Parent fragment: " + (parentFragment != null ? parentFragment.getClass().getSimpleName() : "null"));
-        if (parentFragment instanceof OnDeleteConfirmedListener) {
-            listener = (OnDeleteConfirmedListener) parentFragment;
-        } else {
-            Log.e(TAG, "Parent fragment does not implement OnDeleteConfirmedListener: " +
-                    (parentFragment != null ? parentFragment.getClass().getSimpleName() : "null"));
-            Toast.makeText(context, "Cannot perform delete action", Toast.LENGTH_SHORT).show();
-            // Optionally dismiss to prevent further interaction
-            dismiss();
-        }
+    // Explicitly set the listener
+    public void setOnDeleteConfirmedListener(OnDeleteConfirmedListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -75,18 +61,22 @@ public class DeleteConfirmationBottomSheet extends BottomSheetDialogFragment {
         Button confirmButton = view.findViewById(R.id.delete_confirm);
         Button cancelButton = view.findViewById(R.id.delete_cancel);
 
-        messageText.setText(String.format("Are you sure you want to delete %s?", petName));
+        // Set confirmation message
+        String message = petName != null ? String.format("Are you sure you want to delete %s?", petName) : "Are you sure you want to delete this pet?";
+        messageText.setText(message);
 
+        // Confirm deletion
         confirmButton.setOnClickListener(v -> {
-            if (listener != null) {
+            if (listener != null && petId != null) {
                 listener.onDeleteConfirmed(petId);
             } else {
-                Log.e(TAG, "Listener is null, cannot confirm delete");
+                Log.e(TAG, "Cannot confirm delete: listener=" + (listener == null ? "null" : "set") + ", petId=" + (petId == null ? "null" : petId));
                 Toast.makeText(requireContext(), "Cannot perform delete action", Toast.LENGTH_SHORT).show();
             }
             dismiss();
         });
 
+        // Cancel deletion
         cancelButton.setOnClickListener(v -> dismiss());
 
         return view;

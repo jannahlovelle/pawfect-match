@@ -36,17 +36,19 @@
             android:layout_height="wrap_content"
             android:text="Settings"
             android:textSize="40dp"
-            android:paddingBottom="10dp"/>
+            android:paddingBottom="30dp"/>
 
-        <Button
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/settings_deleteaccount"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/icon_tint"
-            android:gravity="left"
+            android:backgroundTint="@color/opposite_icon_tint"
             android:text="Delete Account"
             android:textColor="@color/google_red"
-            android:visibility="visible" />
+            android:gravity="left"
+            android:padding="16dp"
+            android:visibility="visible"/>
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

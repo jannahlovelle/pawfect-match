@@ -32,6 +32,7 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         android:visibility="visible"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,6 +47,63 @@
 
             <!-- Profile Image -->
 
+
+
+            <!-- Email -->
+            <TextView
+                android:id="@+id/login_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:labelFor="@+id/login_email"
+                android:text="@string/login"
+                android:textSize="30sp" />
+
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/login_emailOutlinedTextField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="Email"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/login_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/login_passwordOutlinedTextField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/login_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:drawableEnd="@drawable/visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
+                    />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Error Message -->
             <TextView
                 android:id="@+id/login_errorView"
@@ -55,67 +113,11 @@
                 android:textColor="@android:color/holo_red_dark"
                 android:visibility="gone" />
 
-            <!-- Email -->
-            <TextView
-                android:id="@+id/login_login"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:labelFor="@+id/login_email"
-                android:text="@string/login"
-                android:textSize="30sp" />
-
-            <TextView
-                android:id="@+id/login_labelEmail"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="30dp"
-                android:labelFor="@+id/login_email"
-                android:text="@string/email"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/login_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/rounded_edittext"
-                android:drawableStart="@drawable/baseline_email_24"
-                android:drawablePadding="10dp"
-                android:hint="@string/email"
-                android:inputType="textEmailAddress"
-                android:padding="12dp" />
-
-            <!-- Password -->
-            <TextView
-                android:id="@+id/login_labelPassword"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:labelFor="@+id/login_email"
-                android:text="@string/password"
-                android:textSize="20sp" />
-
-            <EditText
-                android:id="@+id/login_password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_edittext"
-                android:clickable="true"
-                android:drawableStart="@drawable/baseline_lock_24"
-                android:drawableEnd="@drawable/visibility_24dp_e3e3e3_fill0_wght400_grad0_opsz24"
-                android:drawablePadding="10dp"
-                android:focusable="true"
-                android:hint="@string/password"
-                android:importantForAccessibility="yes"
-                android:inputType="textPassword"
-                android:padding="12dp" />
-
             <!-- Login Button -->
             <FrameLayout
                 android:id="@+id/login_button_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/rounded_card_bg"
                 android:clickable="true"
@@ -174,7 +176,7 @@
             <FrameLayout
                 android:id="@+id/google_button_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/google_edittext"
@@ -204,7 +206,7 @@
             <FrameLayout
                 android:id="@+id/signup_button_wrapper"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_marginBottom="40dp"
                 android:background="@drawable/primary_rounded_edittext"
                 android:clickable="true"
