@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import "../styles/home.css";
 import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut, Moon, Sun, Trash2 } from 'lucide-react';
+import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut, Moon, Sun, Trash2, Heart, MessageSquare, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase"; 
 import { signOut } from "firebase/auth";
@@ -18,6 +18,7 @@ export default function Dashboard() {
   });
 
   const [pets, setPets] = useState([]);
+  const [likedPets, setLikedPets] = useState(new Set());
   const [page, setPage] = useState(0);
   const [size] = useState(6);
   const [hasMore, setHasMore] = useState(true);
@@ -29,7 +30,6 @@ export default function Dashboard() {
   const loadMoreRef = useRef(null);
   const settingsRef = useRef(null);
 
-  // Initialize dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -38,7 +38,6 @@ export default function Dashboard() {
     }
   }, [darkMode]);
 
-  // Close settings when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
@@ -66,6 +65,26 @@ export default function Dashboard() {
       profileImage: localStorage.getItem("profileImage") || ''
     });
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchLikedPets = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/pets/liked`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) throw new Error("Failed to fetch liked pets");
+        const liked = await response.json();
+        setLikedPets(new Set(liked.map(pet => pet.petId)));
+      } catch (err) {
+        console.error("Error fetching liked pets:", err);
+      }
+    };
+    fetchLikedPets();
+  }, []);
 
   const fetchPets = useCallback(async (pageToFetch) => {
     if (loading || !hasMore) return;
@@ -151,7 +170,6 @@ export default function Dashboard() {
 
   const handleDeleteAccount = () => {
     if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      // In a real app, you would call your API here to delete the account
       alert("Account deletion would be processed here");
     }
   };
@@ -169,6 +187,25 @@ export default function Dashboard() {
     }
   };
 
+  const handleLikePet = async (petId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/pets/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ petId })
+      });
+      if (!response.ok) throw new Error("Failed to like pet");
+      setLikedPets(prev => new Set(prev).add(petId));
+    } catch (err) {
+      console.error("Error liking pet:", err);
+      setError("Failed to like pet");
+    }
+  };
+
   return (
     <div className={`home-wrapper ${darkMode ? 'dark' : ''}`}>
       <Banner firstName={userDetails.fullName.split(' ')[0]} />
@@ -182,6 +219,7 @@ export default function Dashboard() {
               <Link to="/search"><Search size={20} /> Search</Link>
               <Link to="/notifications"><Bell size={20} /> Notifications</Link>
               <Link to="/messages"><Mail size={20} /> Messages</Link>
+              <Link to="/liked-pets"><Heart size={20} /> Liked Pets</Link>
             </div>
             
             <div className="sidebar-section">
@@ -232,6 +270,21 @@ export default function Dashboard() {
                     className="pet-image"
                     loading="lazy"
                   />
+                </div>
+                <div className="pet-actions">
+                  <button
+                    className={`like-button ${likedPets.has(pet.petId) ? 'liked' : ''}`}
+                    onClick={() => handleLikePet(pet.petId)}
+                    title="Like Pet"
+                  >
+                    <Heart size={20} fill={likedPets.has(pet.petId) ? 'red' : 'none'} />
+                  </button>
+                  <Link to={`/messages/${pet.petId}`} className="action-button" title="Message Owner">
+                    <MessageSquare size={20} />
+                  </Link>
+                  <Link to={`/book/${pet.petId}`} className="action-button" title="Book Appointment">
+                    <Calendar size={20} />
+                  </Link>
                 </div>
                 <div className="pet-info">
                   <h3>{pet.name}</h3>
