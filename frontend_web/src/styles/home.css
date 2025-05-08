@@ -67,6 +67,12 @@ html, body, #root {
   background-color: #f1f5f9;
 }
 
+.feed-header h2 {
+  color: #6D2323;
+  font-size: 1.8rem; /* Adjust size as needed */
+  font-weight: bold;
+}
+
 .pet-feed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
