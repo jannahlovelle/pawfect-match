@@ -6,6 +6,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import defaultProfile from '../assets/defaultprofileimage.png';
+import PetProfilePopup from './components/PetProfilePopup'; // adjust path as needed
+
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export default function UserProfile() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [petsLoading, setPetsLoading] = useState(false);
+  
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -233,30 +236,32 @@ export default function UserProfile() {
                 {petsLoading ? (
                   <div className="loading-spinner">Loading pets...</div>
                 ) : userPets.length > 0 ? (
-                  <div className="pets-grid">
-                    {userPets.map((pet) => (
-                      <Link to={`/pet/${pet.petId}`} key={pet.petId} className="pet-card">
-                        <div className="pet-image-container">
-                          <img
-                            src={pet.photo}
-                            alt={pet.name}
-                            className="pet-image"
-                            onError={(e) => {
-                              e.target.src = defaultProfile;
-                            }}
-                          />
+
+                <div className="pets-grid">
+                  {userPets.map((pet) => (
+                    <div key={pet.petId} className="pet-card" onClick={() => setSelectedPet(pet)}>
+                      <div className="pet-image-container">
+                        <img
+                          src={pet.photo}
+                          alt={pet.name}
+                          className="pet-image"
+                          onError={(e) => {
+                            e.target.src = defaultProfile;
+                          }}
+                        />
+                      </div>
+                      <div className="pet-info">
+                        <h4 className="pet-name">{pet.name}</h4>
+                        <div className="pet-details">
+                          <span className="pet-breed">{pet.breed}</span>
+                          {pet.species && <span className="pet-species"> • {pet.species}</span>}
                         </div>
-                        <div className="pet-info">
-                          <h4 className="pet-name">{pet.name}</h4>
-                          <div className="pet-details">
-                            <span className="pet-breed">{pet.breed}</span>
-                            {pet.species && <span className="pet-species"> • {pet.species}</span>}
-                          </div>
-                          {pet.age && <div className="pet-age">{pet.age} years old</div>}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+                        {pet.age && <div className="pet-age">{pet.age} years old</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
                 ) : (
                   <div className="no-pets-message">
                     <p>You haven't added any pets yet.</p>
