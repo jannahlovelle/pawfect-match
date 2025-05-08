@@ -74,98 +74,124 @@
                 android:layout_gravity="left"
                 android:textSize="30sp" />
             <!-- Email -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/email"
-                android:layout_marginTop="10dp"
-                android:layout_gravity="left"
-                android:textSize="20sp"/>
-            <EditText
-                android:id="@+id/signup_email"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/rounded_edittext"
-                android:drawableStart="@drawable/baseline_email_24"
-                android:drawablePadding="10dp"
-                android:hint="@string/email"
-                android:inputType="textEmailAddress"
-                android:padding="12dp" />
+                android:layout_marginTop="12dp"
+                app:boxBackgroundMode="outline"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                app:boxStrokeColor="@color/primary">
+
+                <EditText
+                    android:id="@+id/signup_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:drawablePadding="10dp"
+                    android:hint="Email*"
+                    android:inputType="textEmailAddress"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- First Name -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/first_name"
-                android:layout_gravity="left"
-                android:textSize="20sp"/>
-
-            <EditText
-                android:id="@+id/signup_first_name"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_edittext"
-                android:hint="@string/first_name"
-                android:drawableLeft="@drawable/baseline_person_24"
-                android:drawablePadding="10dp"
-                android:padding="12dp" />
+                app:boxBackgroundMode="outline"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                app:boxStrokeColor="@color/primary">
+
+                <EditText
+                    android:id="@+id/signup_first_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:drawablePadding="10dp"
+                    android:hint="First Name*"
+                    android:inputType="textPersonName"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Last Name -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/last_name"
-                android:layout_gravity="left"
-                android:textSize="20sp"/>
-            <EditText
-                android:id="@+id/signup_last_name"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_edittext"
-                android:hint="@string/last_name"
-                android:drawableLeft="@drawable/baseline_person_24"
-                android:drawablePadding="10dp"
-                android:padding="12dp" />
+                app:boxBackgroundMode="outline"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                app:boxStrokeColor="@color/primary">
+
+                <EditText
+                    android:id="@+id/signup_last_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:drawablePadding="10dp"
+                    android:hint="Last Name*"
+                    android:inputType="textPersonName"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Phone -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/phone_number"
-                android:layout_gravity="left"
-
-                android:textSize="20sp"/>
-            <EditText
-                android:id="@+id/signup_phone"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_edittext"
-                android:hint="@string/phone_number"
-                android:inputType="phone"
-                android:drawableLeft="@drawable/baseline_phone_24"
-                android:drawablePadding="10dp"
-                android:padding="12dp" />
+                app:boxBackgroundMode="outline"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                app:boxStrokeColor="@color/primary">
+
+                <EditText
+                    android:id="@+id/signup_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:drawablePadding="10dp"
+                    android:hint="Phone Number*"
+                    android:inputType="phone"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Address -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/address"
-                android:layout_gravity="left"
-                android:textSize="20sp"/>
-            <EditText
-                android:id="@+id/signup_address"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_edittext"
-                android:hint="@string/address"
-                android:drawableLeft="@drawable/baseline_add_location_24"
-                android:drawablePadding="10dp"
-                android:padding="12dp" />
+                app:boxBackgroundMode="outline"
+                app:boxCornerRadiusBottomEnd="25dp"
+                app:boxCornerRadiusBottomStart="25dp"
+                app:boxCornerRadiusTopEnd="25dp"
+                app:boxCornerRadiusTopStart="25dp"
+                app:boxStrokeColor="@color/primary">
+
+
+                <EditText
+                    android:id="@+id/signup_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:drawablePadding="10dp"
+                    android:hint="Address*"
+                    android:padding="12dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Next Button -->
             <FrameLayout
@@ -196,6 +222,11 @@
                     android:indeterminate="true"
                     android:visibility="gone" />
             </FrameLayout>
+
+            <com.google.android.gms.maps.MapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
