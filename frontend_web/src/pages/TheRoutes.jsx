@@ -30,7 +30,7 @@ export default function TheRoutes() {
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/pet-list" element={<ProtectedRoute><PetList /></ProtectedRoute>} />
-            <Route path="/pet/:PetId" element={<PetProfilePopup />} />
+            <Route path="/pets/:PetId" element={<PetProfilePopup />} /> 
             
            
         </Routes>
