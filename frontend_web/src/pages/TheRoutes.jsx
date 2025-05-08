@@ -12,6 +12,7 @@ import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
 import AddPet from './AddPet'; // Import AddPet
 import Messages from './Messages'; // Import Messages
 import PetList from './PetList'; //Import Pet List 
+import PetProfilePopup from './components/PetProfilePopup'; //Import Pet Profile Popup
  
  
 export default function TheRoutes() {    
@@ -29,6 +30,7 @@ export default function TheRoutes() {
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/pet-list" element={<ProtectedRoute><PetList /></ProtectedRoute>} />
+            <Route path="/pet/:id" element={<PetProfilePopup />} />
             
            
         </Routes>
