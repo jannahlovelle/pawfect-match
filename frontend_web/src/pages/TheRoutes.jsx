@@ -11,9 +11,7 @@ import UserProfile from './UserProfile'; // Import User Profile
 import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
 import AddPet from './AddPet'; // Import AddPet
 import Messages from './Messages'; // Import Messages
-import PetList from './PetList'; //Import Pet List 
-import PetProfilePopup from './components/PetProfilePopup'; //Import Pet Profile Popup
- 
+import PetList from './PetList'; //Import Pet List  
  
 export default function TheRoutes() {    
     return (

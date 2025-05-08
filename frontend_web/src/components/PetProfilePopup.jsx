@@ -3,11 +3,13 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogActions,
   Card,
   CardContent,
   Typography,
   Grid,
-  IconButton
+  IconButton,
+  Button
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import defaultProfile from '../assets/defaultprofileimage.png';
@@ -34,22 +36,30 @@ const PetProfilePopup = ({ open, onClose, pet }) => {
       </DialogTitle>
 
       <DialogContent dividers>
-        <Card>
+        <Card elevation={0}>
           <CardContent>
             <Grid container spacing={2}>
               <Grid item xs={12} textAlign="center">
                 <img
-                  src={pet.photo || defaultProfile}
+                  src={pet.photo && pet.photo.trim() !== '' ? pet.photo : defaultProfile}
                   alt={pet.name}
-                  style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }}
+                  style={{
+                    width: '150px',
+                    height: '150px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid #ccc'
+                  }}
                   onError={(e) => (e.target.src = defaultProfile)}
                 />
               </Grid>
+
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h5" gutterBottom align="center">
                   {pet.name}
                 </Typography>
               </Grid>
+
               <Grid item xs={6}>
                 <Typography variant="body1"><strong>Type:</strong> {pet.species}</Typography>
               </Grid>
@@ -57,7 +67,9 @@ const PetProfilePopup = ({ open, onClose, pet }) => {
                 <Typography variant="body1"><strong>Breed:</strong> {pet.breed}</Typography>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="body1"><strong>Age:</strong> {pet.age}</Typography>
+                <Typography variant="body1">
+                  <strong>Age:</strong> {pet.age ? `${pet.age} years` : 'Unknown'}
+                </Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="body1"><strong>Gender:</strong> {pet.gender || 'Unknown'}</Typography>
@@ -73,6 +85,12 @@ const PetProfilePopup = ({ open, onClose, pet }) => {
           </CardContent>
         </Card>
       </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} variant="contained" color="primary">
+          Close
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };
