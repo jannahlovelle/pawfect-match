@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import "../styles/home.css";
+import '../styles/home.css';
 import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, Plus } from 'lucide-react';
+import { Home, Search, Bell, Mail, Settings, Plus, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth } from "../firebase"; 
-import { onAuthStateChanged } from "firebase/auth";
+import { auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { CircularProgress, Box, Grid, Typography } from '@mui/material';
 import PetCard from '../components/PetCard';
 import defaultProfile from '../assets/defaultprofileimage.png';
 
 export default function PetList() {
   const navigate = useNavigate();
-  const firstName = localStorage.getItem("firstName");
+  const firstName = localStorage.getItem('firstName');
 
   const [userDetails, setUserDetails] = useState({
     fullName: '',
     email: '',
     phone: '',
     address: '',
-    profileImage: ''
+    profileImage: '',
   });
 
   const [pets, setPets] = useState([]);
@@ -27,26 +27,26 @@ export default function PetList() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      const profileImage = localStorage.getItem("profileImage");
+      const profileImage = localStorage.getItem('profileImage');
 
       if (user) {
-        const fullName = user.displayName || localStorage.getItem("fullName");
-        const email = user.email || localStorage.getItem("email");
+        const fullName = user.displayName || localStorage.getItem('fullName');
+        const email = user.email || localStorage.getItem('email');
 
         setUserDetails({
           fullName: fullName || '',
           email: email || '',
-          phone: localStorage.getItem("phone") || '',
-          address: localStorage.getItem("address") || '',
-          profileImage: profileImage || ''
+          phone: localStorage.getItem('phone') || '',
+          address: localStorage.getItem('address') || '',
+          profileImage: profileImage || '',
         });
       } else {
         setUserDetails({
-          fullName: localStorage.getItem("fullName") || '',
-          email: localStorage.getItem("email") || '',
-          phone: localStorage.getItem("phone") || '',
-          address: localStorage.getItem("address") || '',
-          profileImage: profileImage || ''
+          fullName: localStorage.getItem('fullName') || '',
+          email: localStorage.getItem('email') || '',
+          phone: localStorage.getItem('phone') || '',
+          address: localStorage.getItem('address') || '',
+          profileImage: profileImage || '',
         });
       }
     });
@@ -59,60 +59,46 @@ export default function PetList() {
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No authentication token found");
-      }
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No authentication token found');
 
       const apiUrl = import.meta.env.VITE_API_URL;
-      if (!apiUrl) {
-        throw new Error("VITE_API_URL is not defined in .env");
-      }
+      if (!apiUrl) throw new Error('VITE_API_URL is not defined in .env');
 
-      console.log(`Fetching pets from ${apiUrl}/pets/my-pets with token: ${token.substring(0, 10)}...`);
       const response = await fetch(`${apiUrl}/pets/my-pets`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
 
-      // Log raw response for debugging
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("token");
-          navigate("/login");
-          throw new Error("Session expired. Please log in again.");
+          localStorage.removeItem('token');
+          navigate('/login');
+          throw new Error('Session expired. Please log in again.');
         }
+
         try {
           const errorData = JSON.parse(responseText);
-          throw new Error(errorData.message || "Failed to fetch pets");
-        } catch (parseError) {
+          throw new Error(errorData.message || 'Failed to fetch pets');
+        } catch {
           throw new Error(`Non-JSON response: ${responseText.substring(0, 100)}...`);
         }
       }
 
-      let petsData;
-      try {
-        petsData = JSON.parse(responseText);
-      } catch (parseError) {
-        throw new Error("Response is not valid JSON");
-      }
+      let petsData = JSON.parse(responseText);
 
-      console.log(`Received ${petsData.length} pets`);
-
-      // Fetch photos for each pet
       const petsWithPhotos = await Promise.all(
         petsData.map(async (pet) => {
           try {
             const photoResponse = await fetch(`${apiUrl}/pets/${pet.petId}/photos`, {
               headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
             });
 
             const photoText = await photoResponse.text();
@@ -120,10 +106,8 @@ export default function PetList() {
               const photos = JSON.parse(photoText);
               return { ...pet, photo: photos.length > 0 ? photos[0].url : defaultProfile };
             }
-            console.warn(`No photos for pet ${pet.petId}: ${photoText}`);
             return { ...pet, photo: defaultProfile };
-          } catch (photoError) {
-            console.error(`Error fetching photos for pet ${pet.petId}:`, photoError);
+          } catch {
             return { ...pet, photo: defaultProfile };
           }
         })
@@ -131,7 +115,7 @@ export default function PetList() {
 
       setPets(petsWithPhotos);
     } catch (err) {
-      console.error("Error fetching pets:", err);
+      console.error('Error fetching pets:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -143,17 +127,16 @@ export default function PetList() {
   }, []);
 
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("Are you sure you want to logout?");
+    const confirmLogout = window.confirm('Are you sure you want to logout?');
     if (!confirmLogout) return;
 
     try {
       await auth.signOut();
       localStorage.clear();
-      alert("You have logged out successfully!");
-      navigate("/login");
+      alert('You have logged out successfully!');
+      navigate('/login');
     } catch (error) {
-      console.error("Logout failed: ", error);
-      alert("Logout failed. Please try again.");
+      alert('Logout failed. Please try again.');
     }
   };
 
@@ -161,17 +144,50 @@ export default function PetList() {
     <div className="home-wrapper">
       <Banner firstName={firstName} onLogout={handleLogout} />
 
+        
       <div className="main-content">
-        {/* Left Sidebar */}
         <div className="sidebar">
-          <Link to="/dashboard"><Home size={20} /> Home</Link>
-          <Link to="/search"><Search size={20} /> Search</Link>
-          <Link to="/notifications"><Bell size={20} /> Notifications</Link>
-          <Link to="/messages"><Mail size={20} /> Messages</Link>
-          <Link to="/settings"><Settings size={20} /> Settings</Link>
+          <div className="sidebar-content">
+            <div className="sidebar-section">
+              <h4>Menu</h4>
+              <Link to="/dashboard"><Home size={20} /> Home</Link>
+              <Link to="/search"><Search size={20} /> Search</Link>
+              <Link to="/notifications"><Bell size={20} /> Notifications</Link>
+              <Link to="/messages"><Mail size={20} /> Messages</Link>
+            </div>
+            
+            <div className="sidebar-section">
+              <h4>Pets</h4>
+              <Link to="/profile"><User size={20} /> Profile</Link>
+              <Link to="/pet-list"><List size={20} /> My Pet List</Link>
+              <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
+            </div>
+            
+            <div className="sidebar-section">
+              <h4>Account</h4>
+              <div className="settings-container" ref={settingsRef}>
+                <button className="settings-button" onClick={() => setShowSettings(!showSettings)}>
+                  <Settings size={20} /> Settings
+                </button>
+                {showSettings && (
+                  <div className="settings-popup">
+                    <button className="settings-item" onClick={toggleDarkMode}>
+                      {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+                      {darkMode ? 'Light Mode' : 'Dark Mode'}
+                    </button>
+                    <button className="settings-item delete-account" onClick={handleDeleteAccount}>
+                      <Trash2 size={16} /> Delete Account
+                    </button>
+                  </div>
+                )}
+              </div>
+              <a onClick={handleLogout} style={{cursor: 'pointer'}}><LogOut size={20} /> Logout</a>
+            </div>
+          </div>
         </div>
 
-        {/* Center Content */}
+
+        {/* Center Content - FROM YOUR ORIGINAL PETLIST.JSX */}
         <div className="center-content" style={{ padding: '1rem', overflowY: 'auto' }}>
           <div className="feed-header">
             <h2>My Pet List</h2>
@@ -197,12 +213,6 @@ export default function PetList() {
           </Grid>
         </div>
 
-        {/* Right Sidebar */}
-        <div className="sidebar right">
-          <Link to="/profile"><Home size={20} /> Profile</Link>
-          <Link to="/pet-list"><Search size={20} /> My Pet List</Link>
-          <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
-        </div>
       </div>
     </div>
   );

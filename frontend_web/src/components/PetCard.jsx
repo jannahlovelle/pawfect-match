@@ -1,8 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Card, CardHeader, CardMedia, CardContent, CardActions, Collapse,
-  Avatar, IconButton, Typography
-} from '@mui/material';
+import React from 'react';
+import { Card, CardHeader, CardMedia, CardContent, CardActions, Collapse, Avatar, IconButton, Typography } from '@mui/material';
 import { red } from '@mui/material/colors';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
@@ -11,47 +8,35 @@ import ExpandMore from './ExpandMore';
 import defaultProfile from '../assets/defaultprofileimage.png';
 
 export default function PetCard({ pet }) {
-  const [expanded, setExpanded] = useState(false);
-  const [owner, setOwner] = useState({ name: 'Loading...', address: 'Loading...' });
+  const [expanded, setExpanded] = React.useState(false);
 
-  const handleExpandClick = () => setExpanded(!expanded);
+  const handleExpandClick = () => {
+    setExpanded(!expanded);
+  };
 
+  // Calculate age from dateOfBirth
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return 'Unknown';
     const dob = new Date(dateOfBirth);
     const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-      age--;
+    const years = today.getFullYear() - dob.getFullYear();
+    const months = today.getMonth() - dob.getMonth();
+    if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
+      return years - 1;
     }
-    return age;
+    return years;
   };
-
-  // 🔍 Fetch owner info using userId
-  useEffect(() => {
-    if (!pet.userId) return;
-
-    const fetchOwner = async () => {
-      try {
-        const res = await fetch(`/api/users/${pet.userId}`);
-        if (!res.ok) throw new Error('User not found');
-        const data = await res.json();
-        setOwner({ name: data.fullName || 'Unknown User', address: data.address || 'Unknown Address' });
-      } catch (err) {
-        setOwner({ name: 'Unknown User', address: 'Unknown Address' });
-      }
-    };
-
-    fetchOwner();
-  }, [pet.userId]);
 
   return (
     <Card sx={{ maxWidth: 345, marginBottom: 3 }}>
       <CardHeader
-        avatar={<Avatar sx={{ bgcolor: red[500] }}>{owner.name[0] || 'P'}</Avatar>}
-        title={owner.name}
-        subheader={owner.address}
+        avatar={
+          <Avatar sx={{ bgcolor: red[500] }} aria-label="pet-avatar">
+            {pet.name?.[0] || 'P'}
+          </Avatar>
+        }
+        title={pet.name || 'Unnamed Pet'}
+        subheader={`Age: ${calculateAge(pet.dateOfBirth)} | Gender: ${pet.gender || 'Unknown'}`}
       />
       <CardMedia
         component="img"
@@ -63,8 +48,7 @@ export default function PetCard({ pet }) {
         <Typography variant="body2" color="text.secondary">
           Breed: {pet.breed || 'Unknown'}<br />
           Color: {pet.color || 'Unknown'}<br />
-          Weight: {pet.weight ? `${pet.weight} ${pet.weightUnit || 'kg'}` : 'Unknown'}<br />
-          Age: {calculateAge(pet.dateOfBirth)} | Gender: {pet.gender || 'Unknown'}
+          Weight: {pet.weight ? `${pet.weight} ${pet.weightUnit || 'kg'}` : 'Unknown'}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
