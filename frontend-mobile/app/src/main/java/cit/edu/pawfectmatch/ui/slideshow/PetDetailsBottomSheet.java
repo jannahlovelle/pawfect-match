@@ -1,8 +1,18 @@
 package cit.edu.pawfectmatch.ui.slideshow;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.icu.util.Calendar;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,17 +28,24 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -41,29 +58,28 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
 
     private static final String TAG = "PetDetailsBottomSheet";
     private static final String ARG_PET = "pet";
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private Pet pet;
     private PetDetailsViewModel viewModel;
     private boolean isEditMode = false;
+    private Uri selectedPhotoUri;
+    private String authToken;
 
     // View mode
     private ImageView petImage;
     private ViewPager2 photoPager;
-    private TextView nameText, speciesText, breedText, birthdayText, genderText, weightText, colorText, descText, availabilityText, priceText, errorText;
+    private TextView nameText, speciesText, pedigreeText, healthText ,breedText, birthdayText, genderText, weightText, colorText, descText, availabilityText, priceText, errorText;
     private TextView nameLabel, speciesLabel, breedLabel, birthdayLabel, genderLabel, weightLabel, colorLabel, descLabel, availabilityLabel, priceLabel;
-    private Button editButton, deleteButton;
+    private Button editButton, deleteButton, uploadPhotoButton;
 
     // Edit mode
     private EditText nameEdit, breedEdit, birthdayEdit, weightEdit, colorEdit, descEdit, priceEdit, pedigreeEdit, healthEdit;
     private AutoCompleteTextView speciesEdit, genderEdit, availabilityEdit;
     private TextInputLayout speciesEditLayout, genderEditLayout, availabilityEditLayout, birthdayEditLayout;
-    private TextView nameEditLabel, speciesEditLabel, breedEditLabel, birthdayEditLabel, genderEditLabel, weightEditLabel, colorEditLabel, descEditLabel, availabilityEditLabel, priceEditLabel, pedigreeEditLabel, healthEditLabel;
+    private TextView nameEditLabel, speciesEditLabel,pedigreeLabel, healthLabel,breedEditLabel, birthdayEditLabel, genderEditLabel, weightEditLabel, colorEditLabel, descEditLabel, availabilityEditLabel, priceEditLabel, pedigreeEditLabel, healthEditLabel;
     private Button saveButton, cancelButton;
     private ProgressBar progressBar;
-    private static final DateTimeFormatter[] DATE_FORMATTERS = {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    };
 
     public static PetDetailsBottomSheet newInstance(Pet pet) {
         PetDetailsBottomSheet fragment = new PetDetailsBottomSheet();
@@ -79,13 +95,20 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         if (getArguments() != null) {
             pet = (Pet) getArguments().getSerializable(ARG_PET);
         }
+
+        // Retrieve JWT token from SharedPreferences
+        SharedPreferences prefs = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE);
+        authToken = prefs.getString("jwt_token", null);
+        if (authToken == null) {
+            Log.e(TAG, "JWT token is null");
+            Toast.makeText(requireContext(), "Authentication error. Please log in again.", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottom_sheet_pet_details, container, false);
-
 
         // Initialize view mode views
         petImage = view.findViewById(R.id.bspet_image);
@@ -110,9 +133,14 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         availabilityText = view.findViewById(R.id.bspet_availability);
         priceLabel = view.findViewById(R.id.bspet_price_label);
         priceText = view.findViewById(R.id.bspet_price);
+        pedigreeLabel = view.findViewById(R.id.bspet_pedigree_label);
+        pedigreeText = view.findViewById(R.id.bspet_pedigree);
+        healthLabel = view.findViewById(R.id.bspet_health_label);
+        healthText = view.findViewById(R.id.bspet_health);
         errorText = view.findViewById(R.id.bspet_error);
         editButton = view.findViewById(R.id.bspet_edit);
         deleteButton = view.findViewById(R.id.bspet_delete);
+        uploadPhotoButton = view.findViewById(R.id.bspet_upload_photo);
 
         // Initialize edit mode views
         nameEditLabel = view.findViewById(R.id.bspet_name_edit_label);
@@ -147,6 +175,9 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         cancelButton = view.findViewById(R.id.bspet_cancel);
         progressBar = view.findViewById(R.id.bspet_progress);
 
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(PetDetailsViewModel.class);
+
         setupSpinners();
         bindPetData();
         toggleEditMode(false);
@@ -154,13 +185,12 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         // DatePickerDialog for birthday
         birthdayEdit.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
-            if (pet.getDateOfBirth() != null && !pet.getDateOfBirth().isEmpty()) {
+            if (pet != null && pet.getDateOfBirth() != null && !pet.getDateOfBirth().isEmpty()) {
                 try {
-                    LocalDate date = LocalDate.parse(pet.getDateOfBirth(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                    LocalDate date = LocalDate.parse(pet.getDateOfBirth(), DateTimeFormatter.ISO_DATE_TIME);
                     calendar.set(date.getYear(), date.getMonthValue() - 1, date.getDayOfMonth());
                 } catch (DateTimeParseException e) {
                     Log.e(TAG, "Failed to parse dateOfBirth for DatePicker: " + pet.getDateOfBirth(), e);
-//                     Fallback to current date
                 }
             }
             int year = calendar.get(Calendar.YEAR);
@@ -178,14 +208,38 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
             datePickerDialog.show();
         });
 
-        viewModel = new ViewModelProvider(this).get(PetDetailsViewModel.class);
+        // Upload photo button listener
+        uploadPhotoButton.setOnClickListener(v -> {
+            if (isEditMode) {
+                String permission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ?
+                        Manifest.permission.READ_MEDIA_IMAGES : Manifest.permission.READ_EXTERNAL_STORAGE;
+                if (ContextCompat.checkSelfPermission(requireContext(), permission) == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, PICK_IMAGE_REQUEST);
+                } else {
+                    Toast.makeText(requireContext(), "Storage permission required. Please enable it in Settings.", Toast.LENGTH_LONG).show();
+                    Intent settingsIntent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    settingsIntent.setData(Uri.parse("package:" + requireContext().getPackageName()));
+                    startActivity(settingsIntent);
+                }
+            } else {
+                Toast.makeText(requireContext(), "Enter edit mode to upload a photo", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Fetch photos with error handling
-        try {
-            viewModel.fetchPetPhotos(pet.getPetId());
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to fetch photos: " + e.getMessage());
-            errorText.setText("Failed to load photos");
+        if (pet != null && viewModel != null && authToken != null) {
+            try {
+                viewModel.fetchPetPhotos(authToken, pet.getPetId());
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to fetch photos: " + e.getMessage());
+                errorText.setText("Failed to load photos");
+                errorText.setVisibility(View.VISIBLE);
+            }
+        } else {
+            Log.e(TAG, "Cannot fetch photos: pet, viewModel, or authToken is null");
+            errorText.setText("Failed to load pet data");
             errorText.setVisibility(View.VISIBLE);
         }
 
@@ -222,6 +276,7 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
             progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             saveButton.setEnabled(!isLoading);
+            uploadPhotoButton.setEnabled(!isLoading && isEditMode);
         });
 
         // Handle update success
@@ -229,13 +284,18 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
             if (success != null && success) {
                 Toast.makeText(requireContext(), "Pet updated successfully", Toast.LENGTH_SHORT).show();
                 toggleEditMode(false);
-                bindPetData(); // Refresh displayed data
-                // Notify PetFragment to refresh
+                bindPetData();
+                // Notify PetFragment to refresh via navigation
                 try {
-                    ((PetFragment) getParentFragment()).refreshPets();
+                    NavController navController = NavHostFragment.findNavController(PetDetailsBottomSheet.this);
+                    navController.getCurrentBackStackEntry()
+                            .getSavedStateHandle()
+                            .set("refresh_pets", true);
                 } catch (Exception e) {
-                    Log.e(TAG, "Failed to refresh PetFragment: " + e.getMessage());
+                    Log.e(TAG, "Failed to notify PetFragment: " + e.getMessage());
                 }
+                // Clear selected photo after successful update
+                selectedPhotoUri = null;
             }
         });
 
@@ -243,26 +303,91 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         viewModel.getDeleteSuccess().observe(getViewLifecycleOwner(), success -> {
             if (success != null && success) {
                 Toast.makeText(requireContext(), "Pet deleted successfully", Toast.LENGTH_SHORT).show();
-                // Notify PetFragment to refresh
+                // Notify PetFragment to refresh via navigation
                 try {
-                    ((PetFragment) getParentFragment()).refreshPets();
+                    NavController navController = NavHostFragment.findNavController(PetDetailsBottomSheet.this);
+                    navController.getCurrentBackStackEntry()
+                            .getSavedStateHandle()
+                            .set("refresh_pets", true);
                 } catch (Exception e) {
-                    Log.e(TAG, "Failed to refresh PetFragment: " + e.getMessage());
+                    Log.e(TAG, "Failed to notify PetFragment: " + e.getMessage());
                 }
                 dismiss();
+            }
+        });
+
+        // Handle photo upload success
+        viewModel.getPhotoUploadSuccess().observe(getViewLifecycleOwner(), photoUrl -> {
+            if (photoUrl != null) {
+                Toast.makeText(requireContext(), "Photo uploaded successfully", Toast.LENGTH_SHORT).show();
+                if (pet != null && viewModel != null && authToken != null) {
+                    viewModel.fetchPetPhotos(authToken, pet.getPetId());
+                }
             }
         });
 
         // Button listeners
         editButton.setOnClickListener(v -> toggleEditMode(true));
         deleteButton.setOnClickListener(v -> {
-            DeleteConfirmationBottomSheet confirmation = DeleteConfirmationBottomSheet.newInstance(pet.getPetId(), pet.getName());
-            confirmation.show(getParentFragmentManager(), "DeleteConfirmationBottomSheet");
+            if (pet != null) {
+                DeleteConfirmationBottomSheet confirmation = DeleteConfirmationBottomSheet.newInstance(pet.getPetId(), pet.getName());
+                confirmation.setOnDeleteConfirmedListener(this); // Set listener explicitly
+                confirmation.show(getChildFragmentManager(), "DeleteConfirmationBottomSheet");
+            }
         });
         saveButton.setOnClickListener(v -> savePet());
-        cancelButton.setOnClickListener(v -> toggleEditMode(false));
+        cancelButton.setOnClickListener(v -> {
+            selectedPhotoUri = null;
+            toggleEditMode(false);
+        });
 
         return view;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            selectedPhotoUri = data.getData();
+            try {
+                // Validate MIME type and file size
+                ContentResolver contentResolver = requireContext().getContentResolver();
+                String mimeType = contentResolver.getType(selectedPhotoUri);
+                if (mimeType == null || (!mimeType.equals("image/jpeg") && !mimeType.equals("image/png"))) {
+                    selectedPhotoUri = null;
+                    Toast.makeText(requireContext(), "Please select a JPEG or PNG image", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // Check file size and integrity
+                long size = 0;
+                try (InputStream inputStream = contentResolver.openInputStream(selectedPhotoUri)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        size += bytesRead;
+                        if (size > MAX_FILE_SIZE) {
+                            selectedPhotoUri = null;
+                            Toast.makeText(requireContext(), "File too large. Maximum size is 5MB.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+                    }
+                }
+                if (size == 0) {
+                    selectedPhotoUri = null;
+                    Toast.makeText(requireContext(), "Selected file is empty", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                Log.d(TAG, "Selected photo: URI=" + selectedPhotoUri + ", MIME=" + mimeType + ", size=" + size + " bytes");
+                petImage.setImageURI(selectedPhotoUri);
+                Toast.makeText(requireContext(), "Photo selected. Save to upload.", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading image: " + e.getMessage());
+                Toast.makeText(requireContext(), "Failed to load image", Toast.LENGTH_SHORT).show();
+                selectedPhotoUri = null;
+            }
+        }
     }
 
     private void setupSpinners() {
@@ -279,8 +404,11 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         availabilityEdit.setAdapter(availabilityAdapter);
     }
 
-
     private void bindPetData() {
+        if (pet == null) {
+            Log.e(TAG, "Pet is null in bindPetData");
+            return;
+        }
         nameText.setText(pet.getName() != null ? pet.getName() : "N/A");
         speciesText.setText(pet.getSpecies() != null ? pet.getSpecies() : "N/A");
         breedText.setText(pet.getBreed() != null ? pet.getBreed() : "N/A");
@@ -295,15 +423,15 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
 
         // Pre-fill edit fields
         nameEdit.setText(pet.getName());
-//        speciesEdit.setText(pet.getSpecies());
+        speciesEdit.setText(pet.getSpecies());
         breedEdit.setText(pet.getBreed());
         birthdayEdit.setText(pet.getDateOfBirth() != null && !pet.getDateOfBirth().isEmpty() ?
                 formatDateForDisplay(pet.getDateOfBirth()) : "");
-//        genderEdit.setText(pet.getGender());
+        genderEdit.setText(pet.getGender());
         weightEdit.setText(pet.getWeight() > 0 ? String.valueOf(pet.getWeight()) : "");
         colorEdit.setText(pet.getColor());
         descEdit.setText(pet.getDescription());
-//        availabilityEdit.setText(pet.getAvailabilityStatus());
+        availabilityEdit.setText(pet.getAvailabilityStatus());
         priceEdit.setText(pet.getPrice() > 0 ? String.valueOf(pet.getPrice()) : "");
         pedigreeEdit.setText(pet.getPedigreeInfo());
         healthEdit.setText(pet.getHealthStatus());
@@ -311,11 +439,11 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
 
     private String formatDateForDisplay(String dateStr) {
         try {
-            LocalDateTime dateTime = LocalDateTime.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDateTime dateTime = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
             return dateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } catch (DateTimeParseException e) {
             Log.e(TAG, "Failed to parse date for display: " + dateStr, e);
-            return dateStr; // Fallback to raw string
+            return dateStr; // Fallback to original string
         }
     }
 
@@ -323,8 +451,10 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         isEditMode = enable;
 
         // View mode visibility
-        petImage.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        petImage.setVisibility(!enable ? View.VISIBLE : View.VISIBLE);
         photoPager.setVisibility(!enable && photoPager.getAdapter() != null ? View.VISIBLE : View.GONE);
+        uploadPhotoButton.setVisibility(View.VISIBLE);
+        uploadPhotoButton.setEnabled(enable);
         nameLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         nameText.setVisibility(!enable ? View.VISIBLE : View.GONE);
         speciesLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
@@ -345,6 +475,10 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         availabilityText.setVisibility(!enable ? View.VISIBLE : View.GONE);
         priceLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
         priceText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        pedigreeLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        pedigreeText.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        healthLabel.setVisibility(!enable ? View.VISIBLE : View.GONE);
+        healthText.setVisibility(!enable ? View.VISIBLE : View.GONE);
         editButton.setVisibility(!enable ? View.VISIBLE : View.GONE);
         deleteButton.setVisibility(!enable ? View.VISIBLE : View.GONE);
 
@@ -379,9 +513,29 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         healthEdit.setVisibility(enable ? View.VISIBLE : View.GONE);
         saveButton.setVisibility(enable ? View.VISIBLE : View.GONE);
         cancelButton.setVisibility(enable ? View.VISIBLE : View.GONE);
+
+        // Reset selected photo and reload photos when exiting edit mode
+        if (!enable) {
+            selectedPhotoUri = null;
+            if (pet != null && viewModel != null && authToken != null) {
+                viewModel.fetchPetPhotos(authToken, pet.getPetId());
+            }
+        }
     }
 
     private void savePet() {
+        if (pet == null) {
+            errorText.setText("Pet data is missing");
+            errorText.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        if (authToken == null) {
+            errorText.setText("Authentication error. Please log in again.");
+            errorText.setVisibility(View.VISIBLE);
+            return;
+        }
+
         String name = nameEdit.getText() != null ? nameEdit.getText().toString().trim() : "";
         String species = speciesEdit.getText() != null ? speciesEdit.getText().toString().trim() : "";
         String gender = genderEdit.getText() != null ? genderEdit.getText().toString().trim() : "";
@@ -428,11 +582,70 @@ public class PetDetailsBottomSheet extends BottomSheetDialogFragment implements 
         request.setPedigreeInfo(pedigreeEdit.getText() != null ? pedigreeEdit.getText().toString().trim() : null);
         request.setHealthStatus(healthEdit.getText() != null ? healthEdit.getText().toString().trim() : null);
 
-        viewModel.updatePet(pet.getPetId(), request);
+        // Update pet and upload photo if selected
+        if (viewModel != null) {
+            viewModel.updatePet(authToken, pet.getPetId(), request);
+
+            if (selectedPhotoUri != null) {
+                File photoFile = uriToFile(selectedPhotoUri);
+                if (photoFile != null && photoFile.exists() && photoFile.length() > 0) {
+                    // Log file details
+                    Log.d(TAG, "Uploading file: " + photoFile.getAbsolutePath() + ", size: " + photoFile.length() + " bytes");
+                    try {
+                        byte[] fileHeader = new byte[10];
+                        try (java.io.FileInputStream fis = new java.io.FileInputStream(photoFile)) {
+                            fis.read(fileHeader);
+                        }
+                        Log.d(TAG, "File header: " + Arrays.toString(fileHeader));
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to read file header: " + e.getMessage());
+                    }
+                    viewModel.uploadPetPhoto(authToken, pet.getPetId(), photoFile);
+                } else {
+                    errorText.setText("Failed to process selected photo: " + (photoFile == null ? "null file" : "empty or invalid file"));
+                    errorText.setVisibility(View.VISIBLE);
+                }
+            }
+        } else {
+            errorText.setText("Failed to save: ViewModel not initialized");
+            errorText.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private File uriToFile(Uri uri) {
+        try {
+            ContentResolver contentResolver = requireContext().getContentResolver();
+            String mimeType = contentResolver.getType(uri);
+            if (mimeType == null || (!mimeType.equals("image/jpeg") && !mimeType.equals("image/png"))) {
+                Log.e(TAG, "Invalid file type: " + mimeType);
+                return null;
+            }
+
+            String extension = mimeType.equals("image/jpeg") ? ".jpg" : ".png";
+            File file = new File(requireContext().getCacheDir(), "pet_photo_" + System.currentTimeMillis() + extension);
+            try (InputStream inputStream = contentResolver.openInputStream(uri);
+                 FileOutputStream outputStream = new FileOutputStream(file)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+            Log.d(TAG, "Created file: " + file.getAbsolutePath() + ", MIME: " + mimeType + ", size: " + file.length() + " bytes");
+            return file;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to convert Uri to File: " + e.getMessage());
+            return null;
+        }
     }
 
     @Override
     public void onDeleteConfirmed(String petId) {
-        viewModel.deletePet(petId);
+        if (viewModel != null && authToken != null) {
+            viewModel.deletePet(authToken, petId);
+        } else {
+            Log.e(TAG, "Cannot delete pet: ViewModel or authToken is null");
+            Toast.makeText(requireContext(), "Failed to delete pet", Toast.LENGTH_SHORT).show();
+        }
     }
 }

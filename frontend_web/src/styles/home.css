@@ -67,6 +67,12 @@ html, body, #root {
   background-color: #f1f5f9;
 }
 
+.feed-header h2 {
+  color: #6D2323;
+  font-size: 1.8rem; /* Adjust size as needed */
+  font-weight: bold;
+}
+
 .pet-feed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -78,7 +84,7 @@ html, body, #root {
   background-color: #ffffff;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
   transition: transform 0.2s;
 }
 
@@ -107,6 +113,73 @@ html, body, #root {
   margin: 0 0 5px 0;
   color: #1e293b;
 }
+
+.pet-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.like-button, .action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.like-button:hover, .action-button:hover {
+  background: var(--hover-bg);
+}
+
+.like-button.liked svg {
+  fill: red;
+  stroke: red;
+}
+
+.action-button svg {
+  stroke: var(--icon-color);
+}
+
+.like-button svg, .action-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pet-description {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3; 
+}
+
+.dark .pet-card {
+  background: var(--dark-card-bg);
+}
+
+.dark .pet-actions {
+  background: var(--dark-card-bg);
+  border-bottom: 1px solid var(--dark-border-color);
+}
+
+.dark .pet-info p, .dark .pet-description {
+  color: var(--dark-text-secondary);
+}
+
+.dark .like-button:hover, .dark .action-button:hover {
+  background: var(--dark-hover-bg);
+}
+
+.dark .action-button svg {
+  stroke: var(--dark-icon-color);
+}
+
 
 /* Settings Popup Styles */
 .settings-container {

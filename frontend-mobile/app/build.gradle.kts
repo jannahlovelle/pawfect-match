@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation(libs.play.services.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -68,7 +69,7 @@ dependencies {
     implementation("com.facebook.shimmer:shimmer:0.5.0")
     implementation("com.github.bumptech.glide:glide:4.12.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation ("com.google.android.material:material:1.12.0")
     implementation ("com.google.android.flexbox:flexbox:3.0.0")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
 
