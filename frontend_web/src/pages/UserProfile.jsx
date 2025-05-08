@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import defaultProfile from '../assets/defaultprofileimage.png';
-import PetProfilePopup from './components/PetProfilePopup'; // adjust path as needed
+import PetProfilePopup from './components/PetProfilePopup';
 
 
 export default function UserProfile() {
@@ -23,6 +23,7 @@ export default function UserProfile() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [petsLoading, setPetsLoading] = useState(false);
+  const [selectedPet, setSelectedPet] = useState(null);
   
 
   useEffect(() => {
@@ -237,7 +238,8 @@ export default function UserProfile() {
                   <div className="loading-spinner">Loading pets...</div>
                 ) : userPets.length > 0 ? (
 
-                <div className="pets-grid">
+
+                  <div className="pets-grid">
                   {userPets.map((pet) => (
                     <div key={pet.petId} className="pet-card" onClick={() => setSelectedPet(pet)}>
                       <div className="pet-image-container">
@@ -261,6 +263,7 @@ export default function UserProfile() {
                     </div>
                   ))}
                 </div>
+                
 
                 ) : (
                   <div className="no-pets-message">
@@ -275,6 +278,13 @@ export default function UserProfile() {
           )}
         </div>
       </div>
+
+            <PetProfilePopup
+        open={Boolean(selectedPet)}
+        onClose={() => setSelectedPet(null)}
+        pet={selectedPet}
+      />
+
     </div>
   );
 }
