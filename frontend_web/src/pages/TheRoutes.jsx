@@ -11,6 +11,8 @@ import UserProfile from './UserProfile'; // Import User Profile
 import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
 import AddPet from './AddPet'; // Import AddPet
 import Messages from './Messages'; // Import Messages
+import BookingCalendar from './BookingCalendar'; // Import BookingCalendar
+import Notifications from './Notifications'; // Import Notifications
  
  
  
@@ -29,7 +31,8 @@ export default function TheRoutes() {
             <Route path="/add-pet" element={<ProtectedRoute><AddPet /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-           
+            <Route path="/bookings" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         </Routes>
  
     );

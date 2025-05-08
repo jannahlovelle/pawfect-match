@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import "../styles/home.css";
 import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut, Moon, Sun, Trash2 } from 'lucide-react';
+import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut, Moon, Sun, Trash2, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase"; 
 import { signOut } from "firebase/auth";
@@ -182,6 +182,7 @@ export default function Dashboard() {
               <Link to="/search"><Search size={20} /> Search</Link>
               <Link to="/notifications"><Bell size={20} /> Notifications</Link>
               <Link to="/messages"><Mail size={20} /> Messages</Link>
+              <Link to="/bookings"><Calendar size={20} /> Bookings</Link>
             </div>
             
             <div className="sidebar-section">
