@@ -12,6 +12,8 @@ import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
 import AddPet from './AddPet'; // Import AddPet
 import Messages from './Messages'; // Import Messages
 import PetList from './PetList'; //Import Pet List  
+// import PetProfilePopup from './PetProfilePopup'; // Not sure if needed
+import BookingCalendar from './BookingCalendar'; // Import Calendar
  
 export default function TheRoutes() {    
     return (
@@ -28,9 +30,9 @@ export default function TheRoutes() {
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/pet-list" element={<ProtectedRoute><PetList /></ProtectedRoute>} />
-            <Route path="/pets/:PetId" element={<ProtectedRoute><PetProfilePopup /></ProtectedRoute>} />
+            {/* <Route path="/pets/:PetId" element={<ProtectedRoute><PetProfilePopup /></ProtectedRoute>} /> // Not Sure of needed  */}
+            <Route path="/calendar" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
             
-           
         </Routes>
  
     );
