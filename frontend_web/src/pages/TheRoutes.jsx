@@ -11,9 +11,11 @@ import UserProfile from './UserProfile'; // Import User Profile
 import EditUserProfile from './EditUserProfile'; // Import EditUserProfile
 import AddPet from './AddPet'; // Import AddPet
 import Messages from './Messages'; // Import Messages
-import PetList from './PetList'; //Import Pet List  
-// import PetProfilePopup from './PetProfilePopup'; // Not sure if needed
-import BookingCalendar from './BookingCalendar'; // Import Calendar
+import BookingCalendar from './BookingCalendar'; // Import BookingCalendar
+import Notifications from './Notifications'; // Import Notifications
+import EditPet from './EditPet'; // Import EditPet
+ 
+ 
  
 export default function TheRoutes() {    
     return (
@@ -22,6 +24,7 @@ export default function TheRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/home" element={<Dashboard />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
@@ -29,10 +32,10 @@ export default function TheRoutes() {
             <Route path="/add-pet" element={<ProtectedRoute><AddPet /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/pet-list" element={<ProtectedRoute><PetList /></ProtectedRoute>} />
-            {/* <Route path="/pets/:PetId" element={<ProtectedRoute><PetProfilePopup /></ProtectedRoute>} /> // Not Sure of needed  */}
-            <Route path="/calendar" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
-            
+            <Route path="/bookings" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
+            <Route path="/booking" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/edit-pet/:petId" element={<ProtectedRoute><EditPet /></ProtectedRoute>} />
         </Routes>
  
     );

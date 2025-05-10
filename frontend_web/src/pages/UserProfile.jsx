@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import "../styles/UserProfile.css";
 import Banner from '../components/Banner';
-import PetProfilePopup from '../components/PetProfilePopUp';
 import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from "../firebase";
@@ -22,7 +21,6 @@ export default function UserProfile() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [petsLoading, setPetsLoading] = useState(false);
-  const [selectedPet, setSelectedPet] = useState(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -99,7 +97,7 @@ export default function UserProfile() {
         }
 
         const petsData = await petsResponse.json();
-
+        
         const petsWithPhotos = await Promise.all(
           petsData.map(async (pet) => {
             try {
@@ -155,8 +153,38 @@ export default function UserProfile() {
     }
   };
 
-  const handleOpenPopup = (pet) => {
-    setSelectedPet(pet);
+  const handleDeletePet = async (petId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this pet?");
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/pets/delete/${petId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete pet");
+      }
+
+      // Remove the deleted pet from state
+      setUserPets(userPets.filter(pet => pet.petId !== petId));
+      alert(data.message || "Pet deleted successfully");
+    } catch (err) {
+      console.error("Error deleting pet:", err);
+      setError(err.message);
+    }
   };
 
   return (
@@ -172,18 +200,17 @@ export default function UserProfile() {
             <Link to="/notifications"><Bell size={20} /> Notifications</Link>
             <Link to="/messages"><Mail size={20} /> Messages</Link>
           </div>
-
+          
           <div className="sidebar-section">
             <h4>Pets</h4>
             <Link to="/profile" className="active"><User size={20} /> Profile</Link>
-            <Link to="/pet-list"><List size={20} /> My Pet List</Link>
             <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
           </div>
-
+          
           <div className="sidebar-section">
             <h4>Account</h4>
             <Link to="/settings"><Settings size={20} /> Settings</Link>
-            <a onClick={handleLogout} style={{ cursor: 'pointer' }}><LogOut size={20} /> Logout</a>
+            <a onClick={handleLogout} style={{cursor: 'pointer'}}><LogOut size={20} /> Logout</a>
           </div>
         </div>
 
@@ -200,7 +227,9 @@ export default function UserProfile() {
                     src={userDetails.profileImage}
                     alt="Profile"
                     className="profile-image"
-                    onError={(e) => { e.target.src = defaultProfile; }}
+                    onError={(e) => {
+                      e.target.src = defaultProfile;
+                    }}
                   />
                   <Link to="/edit-profile" className="edit-profile-button">
                     Edit Profile
@@ -233,15 +262,17 @@ export default function UserProfile() {
                 {petsLoading ? (
                   <div className="loading-spinner">Loading pets...</div>
                 ) : userPets.length > 0 ? (
-                  <div className="pets-grid" onClick={() => handleOpenPopup(userPets[0])}>
+                  <div className="pets-grid">
                     {userPets.map((pet) => (
-                      <div key={pet.petId} className="pet-card" style={{ pointerEvents: 'none' }}>
+                      <div key={pet.petId} className="pet-card">
                         <div className="pet-image-container">
                           <img
                             src={pet.photo}
                             alt={pet.name}
                             className="pet-image"
-                            onError={(e) => { e.target.src = defaultProfile; }}
+                            onError={(e) => {
+                              e.target.src = defaultProfile;
+                            }}
                           />
                         </div>
                         <div className="pet-info">
@@ -251,6 +282,20 @@ export default function UserProfile() {
                             {pet.species && <span className="pet-species"> • {pet.species}</span>}
                           </div>
                           {pet.age && <div className="pet-age">{pet.age} years old</div>}
+                        </div>
+                        <div className="pet-actions">
+                          <button 
+                            className="edit-pet-btn"
+                            onClick={() => navigate(`/edit-pet/${pet.petId}`)}
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            className="delete-pet-btn"
+                            onClick={() => handleDeletePet(pet.petId)}
+                          >
+                            Delete
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -268,12 +313,6 @@ export default function UserProfile() {
           )}
         </div>
       </div>
-
-      <PetProfilePopup
-        open={Boolean(selectedPet)}
-        onClose={() => setSelectedPet(null)}
-        pet={selectedPet}
-      />
     </div>
   );
 }

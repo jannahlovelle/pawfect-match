@@ -21,7 +21,7 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/register")
+   @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(
             @Valid @RequestPart("user") RegisterRequest userRequest,
             @RequestPart(value = "file", required = false) MultipartFile file) {
