@@ -13,12 +13,19 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import cit.edu.pawfectmatch.R;
+import cit.edu.pawfectmatch.backendstuff.Pet;
+import cit.edu.pawfectmatch.backendstuff.Photo;
 
 public class PetFragment extends Fragment {
     private PetViewModel petViewModel;
@@ -60,12 +67,30 @@ public class PetFragment extends Fragment {
         petViewModel.getPets().observe(getViewLifecycleOwner(), pets -> {
             if (pets != null && !pets.isEmpty()) {
                 petAdapter.setPets(pets);
+                // Fetch photos for each pet
+                for (Pet pet : pets) {
+                    petViewModel.fetchPetPhotos(pet.getPetId());
+                }
                 recyclerView.setVisibility(View.VISIBLE);
                 errorTextView.setVisibility(View.GONE);
             } else {
                 recyclerView.setVisibility(View.GONE);
                 errorTextView.setVisibility(View.VISIBLE);
                 errorTextView.setText("No pets found.");
+            }
+        });
+
+        petViewModel.getPhotos().observe(getViewLifecycleOwner(), photosMap -> {
+            if (photosMap != null) {
+                Map<String, String> photoUrls = new HashMap<>();
+                for (Map.Entry<String, List<Photo>> entry : photosMap.entrySet()) {
+                    String petId = entry.getKey();
+                    List<Photo> photos = entry.getValue();
+                    if (photos != null && !photos.isEmpty()) {
+                        photoUrls.put(petId, photos.get(0).getUrl());
+                    }
+                }
+                petAdapter.setPetPhotos(photoUrls);
             }
         });
 
@@ -80,6 +105,17 @@ public class PetFragment extends Fragment {
                 errorTextView.setText(error);
             }
         });
+
+        // Observe refresh signal from PetDetailsBottomSheet
+        NavHostFragment.findNavController(this)
+                .getCurrentBackStackEntry()
+                .getSavedStateHandle()
+                .getLiveData("refresh_pets", false)
+                .observe(getViewLifecycleOwner(), refresh -> {
+                    if (Boolean.TRUE.equals(refresh)) {
+                        refreshPets();
+                    }
+                });
 
         petViewModel.fetchMyPets();
     }

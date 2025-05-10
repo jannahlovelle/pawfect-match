@@ -5,6 +5,7 @@
         <item name="colorOnBackground">@color/colorOnBackground</item>
         <item name="colorOnPrimary">@color/colorPrimary</item>
         <item name="colorTertiary">#FFFFFF</item>
+        <item name="colorSurface">#ffffff</item>
 
         <!-- Fix the status bar -->
         <item name="android:statusBarColor">@color/white</item> <!-- dark icons for light background -->

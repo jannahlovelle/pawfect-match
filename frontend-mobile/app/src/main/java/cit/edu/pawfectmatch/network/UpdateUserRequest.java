@@ -12,10 +12,10 @@ public class UpdateUserRequest {
     public UpdateUserRequest() {
     }
 
-    public UpdateUserRequest(String firstName, String lastName, String password, String email, String phone, String address) {
+    public UpdateUserRequest(String firstName, String lastName, String email, String phone, String address) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.password = password;
+//        this.password = password;
         this.email = email;
         this.phone = phone;
         this.address = address;
