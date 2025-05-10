@@ -58,45 +58,58 @@ export default function Signup() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      setLoading(false);
-      return;
+  const validationError = validateForm();
+  if (validationError) {
+    setError(validationError);
+    setLoading(false);
+    return;
+  }
+
+  const requestData = {
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email,
+    phone: formData.phone,
+    address: formData.address,
+    password: formData.password,
+    role: "USER", // Add default role
+    signUpMethod: "EMAIL" // Add default signUpMethod
+  };
+
+  try {
+    // Create FormData object
+    const formDataToSend = new FormData();
+    
+    // Append user data as a JSON blob
+    formDataToSend.append(
+      "user", 
+      new Blob([JSON.stringify(requestData)], { 
+        type: "application/json" 
+      })
+    );
+
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+      method: "POST",
+      body: formDataToSend,
+      // Don't set Content-Type header - browser will set it automatically with boundary
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || "Signup failed");
     }
-
-    const requestData = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      address: formData.address,
-      password: formData.password,
-    };
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Signup failed");
-      }
-      
-      alert("Signup successful! Please log in.");
-      navigate("/login");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    
+    alert("Signup successful! Please log in.");
+    navigate("/login");
+  } catch (err) {
+    setError(err.message || "Failed to sign up. Please try again.");
+  } finally {
+    setLoading(false);
+  }
   };
 
   return (

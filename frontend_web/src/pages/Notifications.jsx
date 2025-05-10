@@ -1,69 +1,129 @@
 import React, { useState, useEffect } from 'react';
+import { Bell, Check, X } from 'lucide-react';
 import axios from 'axios';
-import { Bell } from 'lucide-react';
+import { jwtDecode } from 'jwt-decode';
+import { useWebSocket } from './useWebSocket';
+import NotificationPopup from './NotificationPopup';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
+  const token = localStorage.getItem('token');
+  let userId = null;
 
-  // Fetch notifications on component mount
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userId = decoded.sub; // Extract userId from JWT 'sub' claim
+    } catch (error) {
+      console.error('Failed to decode JWT:', error);
+    }
+  }
+
+  // 1. Fetch initial notifications
   useEffect(() => {
+    if (!token) {
+      console.warn('No token found, skipping notification fetch');
+      return;
+    }
+
     const fetchNotifications = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8080/api/notifications', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/notifications`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setNotifications(response.data);
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+        console.error('Failed to load notifications:', error.response?.data || error.message);
       }
     };
     fetchNotifications();
-  }, []);
+  }, [token]);
 
-  // Handle approve/reject actions
+  // 2. Handle new notifications via WebSocket
+  const handleNotification = (newNotification) => {
+    setNotifications((prev) => [newNotification, ...prev]);
+  };
+
+  useWebSocket(handleNotification);
+
+  // 3. Handle approve/reject actions
   const handleAction = async (bookingId, action) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:8080/api/bookings/${bookingId}/${action}`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setNotifications(notifications.filter(n => n.link !== bookingId));
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/bookings/${bookingId}/${action}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setNotifications((prev) => prev.filter((n) => n.link !== bookingId));
     } catch (error) {
-      console.error(`Error ${action} booking:`, error);
+      console.error(`Failed to ${action} booking:`, error.response?.data, error.message);
+      alert(`Failed to ${action} booking: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  // 4. Mark as read
+  const markAsRead = async (notificationId) => {
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/notifications/${notificationId}/read`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.notificationId === notificationId ? { ...n, read: true } : n
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark as read:', error.response?.data || error.message);
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2><Bell size={24} /> Notifications</h2>
+    <div className="notifications-container">
+      <header className="notifications-header">
+        <Bell size={24} className="icon" />
+        <h2>Notifications</h2>
+        <NotificationPopup />
+      </header>
+
       {notifications.length === 0 ? (
-        <p>No notifications.</p>
+        <p className="empty-state">No notifications found</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {notifications.map(notification => (
+        <ul className="notifications-list">
+          {notifications.map((notification) => (
             <li
               key={notification.notificationId}
-              style={{
-                padding: '10px',
-                borderBottom: '1px solid #ccc',
-                backgroundColor: notification.read ? '#fff' : '#f0f0f0',
-              }}
+              className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+              onClick={() => markAsRead(notification.notificationId)}
             >
-              <p>{notification.message}</p>
+              <p className="notification-message">{notification.message}</p>
               {notification.type === 'BOOKING_REQUEST' && (
-                <div>
+                <div className="action-buttons">
                   <button
-                    onClick={() => handleAction(notification.link, 'approve')}
-                    style={{ marginRight: '10px', padding: '5px 10px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(notification.link, 'approve');
+                    }}
+                    className="approve-btn"
                   >
-                    Approve
+                    <Check size={16} /> Approve
                   </button>
                   <button
-                    onClick={() => handleAction(notification.link, 'reject')}
-                    style={{ padding: '5px 10px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAction(notification.link, 'reject');
+                    }}
+                    className="reject-btn"
                   >
-                    Reject
+                    <X size={16} /> Reject
                   </button>
                 </div>
               )}

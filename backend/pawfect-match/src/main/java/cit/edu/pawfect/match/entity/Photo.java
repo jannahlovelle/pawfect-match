@@ -12,6 +12,7 @@ public class Photo {
     private String petId; 
     private String url; 
     private String cloudinaryPublicId;
+    private boolean mainPhoto = false; 
 
     public Photo() {}
 
@@ -51,5 +52,12 @@ public class Photo {
 
     public void setCloudinaryPublicId(String cloudinaryPublicId) {
         this.cloudinaryPublicId = cloudinaryPublicId;
+    }
+     public boolean isMainPhoto() {
+        return mainPhoto;
+    }
+
+    public void setMainPhoto(boolean mainPhoto) {
+        this.mainPhoto = mainPhoto;
     }
 }

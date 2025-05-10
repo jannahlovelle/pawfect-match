@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -35,16 +37,40 @@ public class BookingController {
     }
 
     @PostMapping("/{bookingId}/approve")
-    public ResponseEntity<Booking> approveBooking(@PathVariable String bookingId, Authentication authentication) {
-        String ownerId = authentication.getName();
-        Booking updatedBooking = bookingService.approveBooking(bookingId, ownerId);
-        return ResponseEntity.ok(updatedBooking);
+    public ResponseEntity<?> approveBooking(@PathVariable String bookingId, Authentication authentication) {
+        try {
+            String ownerEmail = authentication.getName();
+            Booking updatedBooking = bookingService.approveBooking(bookingId, ownerEmail);
+            return ResponseEntity.ok(updatedBooking);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Failed to approve booking: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
     @PostMapping("/{bookingId}/reject")
-    public ResponseEntity<Booking> rejectBooking(@PathVariable String bookingId, Authentication authentication) {
-        String ownerId = authentication.getName();
-        Booking updatedBooking = bookingService.rejectBooking(bookingId, ownerId);
-        return ResponseEntity.ok(updatedBooking);
+    public ResponseEntity<?> rejectBooking(@PathVariable String bookingId, Authentication authentication) {
+        try {
+            String ownerEmail = authentication.getName();
+            Booking updatedBooking = bookingService.rejectBooking(bookingId, ownerEmail);
+            return ResponseEntity.ok(updatedBooking);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "Failed to reject booking: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 }

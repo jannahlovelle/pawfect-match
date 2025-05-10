@@ -2,30 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import axios from 'axios';
-import { X, History } from 'lucide-react';
+import { X, History, ArrowLeft } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import "../styles/BookingCalendar.css";
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const localizer = momentLocalizer(moment);
 
 const BookingCalendar = () => {
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const petId = state?.petId || '';
+  const petName = state?.petName || 'Unknown Pet';
   const [events, setEvents] = useState([]);
   const [pendingBookings, setPendingBookings] = useState([]);
   const [bookingHistory, setBookingHistory] = useState([]);
+  const [petNames, setPetNames] = useState({});
   const [newBooking, setNewBooking] = useState({
-    petId: '',
+    petId: petId,
     date: '',
     title: '',
     status: 'PENDING',
   });
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
-  // Fetch bookings and history on component mount
+  useEffect(() => {
+    if (!petId) {
+      navigate('/bookings');
+    }
+  }, [petId, navigate]);
+
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8080/api/bookings', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const confirmed = response.data
@@ -40,6 +51,25 @@ const BookingCalendar = () => {
         const pending = response.data.filter(booking => booking.status === 'PENDING');
         setEvents(confirmed);
         setPendingBookings(pending);
+
+        const uniquePetIds = [...new Set(pending.map(booking => booking.petId))];
+        const petNamePromises = uniquePetIds.map(async (id) => {
+          try {
+            const petResponse = await axios.get(`${import.meta.env.VITE_API_URL}/pets/public/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            return { petId: id, name: petResponse.data.name };
+          } catch (error) {
+            console.error(`Error fetching pet ${id}:`, error);
+            return { petId: id, name: 'Unknown Pet' };
+          }
+        });
+        const petNameResults = await Promise.all(petNamePromises);
+        const newPetNames = petNameResults.reduce((acc, { petId, name }) => {
+          acc[petId] = name;
+          return acc;
+        }, {});
+        setPetNames((prev) => ({ ...prev, ...newPetNames }));
       } catch (error) {
         console.error('Error fetching bookings:', error);
       }
@@ -48,10 +78,32 @@ const BookingCalendar = () => {
     const fetchBookingHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:8080/api/bookings/history', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/bookings/history`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBookingHistory(response.data);
+
+        const uniquePetIds = [...new Set(response.data.map(booking => booking.petId))];
+        const newPetIds = uniquePetIds.filter(id => !petNames[id]);
+        if (newPetIds.length > 0) {
+          const petNamePromises = newPetIds.map(async (id) => {
+            try {
+              const petResponse = await axios.get(`${import.meta.env.VITE_API_URL}/pets/public/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              return { petId: id, name: petResponse.data.name };
+            } catch (error) {
+              console.error(`Error fetching pet ${id}:`, error);
+              return { petId: id, name: 'Unknown Pet' };
+            }
+          });
+          const petNameResults = await Promise.all(petNamePromises);
+          const newPetNames = petNameResults.reduce((acc, { petId, name }) => {
+            acc[petId] = name;
+            return acc;
+          }, {});
+          setPetNames((prev) => ({ ...prev, ...newPetNames }));
+        }
       } catch (error) {
         console.error('Error fetching booking history:', error);
       }
@@ -61,13 +113,15 @@ const BookingCalendar = () => {
     fetchBookingHistory();
   }, []);
 
-  // Handle form input changes
+  useEffect(() => {
+    setNewBooking((prev) => ({ ...prev, petId }));
+  }, [petId]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewBooking({ ...newBooking, [name]: value });
   };
 
-  // Handle form submission to create a booking
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -76,101 +130,99 @@ const BookingCalendar = () => {
         ...newBooking,
         date: new Date(newBooking.date).toISOString(),
       };
-      const response = await axios.post('http://localhost:8080/api/bookings', bookingData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/bookings`, bookingData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setPendingBookings([...pendingBookings, response.data]);
       setBookingHistory([...bookingHistory, response.data]);
-      setNewBooking({ petId: '', date: '', title: '', status: 'PENDING' });
+      setPetNames((prev) => ({ ...prev, [response.data.petId]: petName }));
+      setNewBooking({ petId, date: '', title: '', status: 'PENDING' });
+      alert('Booking request submitted successfully!');
     } catch (error) {
       console.error('Error creating booking:', error);
+      alert(`Error creating booking: ${error.response?.data?.message || error.message}`);
     }
   };
 
-  // Toggle history modal
   const toggleHistoryModal = () => {
     setIsHistoryModalOpen(!isHistoryModalOpen);
   };
 
   return (
     <div className="booking-calendar-container">
-      <h2 className="section-title">Book an Appointment</h2>
-      <div className="booking-card">
-        <form onSubmit={handleSubmit} className="booking-form">
-          <div className="form-group">
-            <label htmlFor="petId">Pet ID</label>
-            <input
-              type="text"
-              id="petId"
-              name="petId"
-              value={newBooking.petId}
-              onChange={handleInputChange}
-              required
-              placeholder="Enter Pet ID"
+      <div className="booking-header">
+        <button onClick={() => navigate("/dashboard")} className="back-button">
+          <ArrowLeft size={20} /> Back
+        </button>
+        <h2 className="section-title">Book an Appointment for {petName}</h2>
+      </div>
+      <div className="booking-grid">
+        <div className="booking-column">
+          <div className="booking-card">
+            <h3 className="card-title">New Booking</h3>
+            <form onSubmit={handleSubmit} className="booking-form">
+              <div className="form-group">
+                <label htmlFor="date">Date and Time</label>
+                <input
+                  type="datetime-local"
+                  id="date"
+                  name="date"
+                  value={newBooking.date}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={newBooking.title}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="e.g., Breeding Appointment"
+                />
+              </div>
+              <button type="submit" className="submit-button">Request Booking</button>
+            </form>
+          </div>
+          <div className="booking-card">
+            <h3 className="card-title">Pending Bookings</h3>
+            {pendingBookings.length === 0 ? (
+              <p className="no-data">No pending bookings.</p>
+            ) : (
+              <ul className="booking-list">
+                {pendingBookings.map(booking => (
+                  <li key={booking.bookingId} className="booking-item">
+                    <span>{booking.title}</span>
+                    <span>{new Date(booking.date).toLocaleString()}</span>
+                    <span>Pet: {petNames[booking.petId] || 'Loading...'}</span>
+                    <span className={`status ${booking.status.toLowerCase()}`}>
+                      {booking.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+        <div className="booking-column calendar-column">
+          <div className="booking-card">
+            <h3 className="card-title">Confirmed Bookings</h3>
+            <Calendar
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              className="booking-calendar"
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="date">Date and Time</label>
-            <input
-              type="datetime-local"
-              id="date"
-              name="date"
-              value={newBooking.date}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              value={newBooking.title}
-              onChange={handleInputChange}
-              required
-              placeholder="e.g., Breeding Appointment"
-            />
-          </div>
-          <button type="submit" className="submit-button">Request Booking</button>
-        </form>
+        </div>
       </div>
-
-      <h2 className="section-title">Pending Bookings</h2>
-      <div className="booking-card">
-        {pendingBookings.length === 0 ? (
-          <p className="no-data">No pending bookings.</p>
-        ) : (
-          <ul className="booking-list">
-            {pendingBookings.map(booking => (
-              <li key={booking.bookingId} className="booking-item">
-                <span>{booking.title}</span>
-                <span>{new Date(booking.date).toLocaleString()}</span>
-                <span>Pet ID: {booking.petId}</span>
-                <span className={`status ${booking.status.toLowerCase()}`}>
-                  {booking.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <h2 className="section-title">Confirmed Bookings</h2>
-      <div className="booking-card">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          className="booking-calendar"
-        />
-      </div>
-
       <button onClick={toggleHistoryModal} className="history-button">
         <History size={20} /> View History
       </button>
-
       {isHistoryModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -188,7 +240,7 @@ const BookingCalendar = () => {
                   <tr>
                     <th>Title</th>
                     <th>Date</th>
-                    <th>Pet ID</th>
+                    <th>Pet</th>
                     <th>Status</th>
                     <th>Role</th>
                   </tr>
@@ -198,7 +250,7 @@ const BookingCalendar = () => {
                     <tr key={booking.bookingId}>
                       <td>{booking.title}</td>
                       <td>{new Date(booking.date).toLocaleString()}</td>
-                      <td>{booking.petId}</td>
+                      <td>{petNames[booking.petId] || 'Loading...'}</td>
                       <td className={`status ${booking.status.toLowerCase()}`}>
                         {booking.status}
                       </td>

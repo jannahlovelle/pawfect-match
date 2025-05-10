@@ -13,6 +13,7 @@ import AddPet from './AddPet'; // Import AddPet
 import Messages from './Messages'; // Import Messages
 import BookingCalendar from './BookingCalendar'; // Import BookingCalendar
 import Notifications from './Notifications'; // Import Notifications
+import EditPet from './EditPet'; // Import EditPet
  
  
  
@@ -32,7 +33,9 @@ export default function TheRoutes() {
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/messages/:threadId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
+            <Route path="/booking" element={<ProtectedRoute><BookingCalendar /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/edit-pet/:petId" element={<ProtectedRoute><EditPet /></ProtectedRoute>} />
         </Routes>
  
     );

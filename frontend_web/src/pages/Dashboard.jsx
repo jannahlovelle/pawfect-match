@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import "../styles/home.css";
 import Banner from '../components/Banner';
-import { Home, Search, Bell, Mail, Settings, User, List, Plus, LogOut, Moon, Sun, Trash2, Calendar } from 'lucide-react';
+import { Home, Search, Bell, Mail, Settings, User, Plus, LogOut, Moon, Sun, Trash2, Calendar, MessageSquare, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { auth } from "../firebase"; 
+import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import defaultProfile from '../assets/defaultprofileimage.png';
 
@@ -19,17 +19,21 @@ export default function Dashboard() {
 
   const [pets, setPets] = useState([]);
   const [page, setPage] = useState(0);
-  const [size] = useState(6);
+  const [size] = useState(20);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
+  const [selectedPet, setSelectedPet] = useState(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const observer = useRef(null);
   const loadMoreRef = useRef(null);
   const settingsRef = useRef(null);
+  const modalRef = useRef(null);
 
-  // Initialize dark mode
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -38,11 +42,13 @@ export default function Dashboard() {
     }
   }, [darkMode]);
 
-  // Close settings when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
         setShowSettings(false);
+      }
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setSelectedPet(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -149,10 +155,36 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      // In a real app, you would call your API here to delete the account
-      alert("Account deletion would be processed here");
+  const handleDeleteAccount = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated");
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/delete/me`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete account.");
+      }
+
+      const result = await response.json();
+      alert(result.message || "Account deleted successfully");
+
+      await signOut(auth);
+      localStorage.clear();
+      navigate("/login");
+    } catch (err) {
+      console.error("Account deletion failed:", err);
+      alert(err.message || "Account deletion failed.");
     }
   };
 
@@ -169,29 +201,40 @@ export default function Dashboard() {
     }
   };
 
+  const handlePetClick = (pet) => {
+    setSelectedPet(pet);
+  };
+
+  const filteredPets = pets.filter(pet =>
+    pet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pet.breed.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    pet.species.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className={`home-wrapper ${darkMode ? 'dark' : ''}`}>
       <Banner firstName={userDetails.fullName.split(' ')[0]} />
-  
+
       <div className="main-content">
         <div className="sidebar">
           <div className="sidebar-content">
             <div className="sidebar-section">
               <h4>Menu</h4>
               <Link to="/dashboard"><Home size={20} /> Home</Link>
-              <Link to="/search"><Search size={20} /> Search</Link>
+              <a onClick={() => setShowSearch(!showSearch)} style={{ cursor: 'pointer' }}>
+                <Search size={20} /> Search
+              </a>
               <Link to="/notifications"><Bell size={20} /> Notifications</Link>
               <Link to="/messages"><Mail size={20} /> Messages</Link>
               <Link to="/bookings"><Calendar size={20} /> Bookings</Link>
             </div>
-            
+
             <div className="sidebar-section">
               <h4>Pets</h4>
               <Link to="/profile"><User size={20} /> Profile</Link>
-              <Link to="/pet-list"><List size={20} /> My Pet List</Link>
               <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
             </div>
-            
+
             <div className="sidebar-section">
               <h4>Account</h4>
               <div className="settings-container" ref={settingsRef}>
@@ -210,7 +253,7 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-              <a onClick={handleLogout} style={{cursor: 'pointer'}}><LogOut size={20} /> Logout</a>
+              <a onClick={handleLogout} style={{ cursor: 'pointer' }}><LogOut size={20} /> Logout</a>
             </div>
           </div>
         </div>
@@ -220,12 +263,35 @@ export default function Dashboard() {
             <h2>Pet Feed</h2>
           </div>
 
+          {showSearch && (
+            <div className="search-bar" style={{ marginBottom: '20px' }}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search pets by name, breed, or species..."
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+          )}
+
           {error && <p className="error">{error}</p>}
           {!loading && pets.length === 0 && !error && <p>No pets available.</p>}
 
           <div className="pet-feed-grid">
-            {pets.map((pet) => (
-              <div className="pet-card" key={pet.petId}>
+            {(showSearch ? filteredPets : pets).map((pet) => (
+              <div
+                className="pet-card"
+                key={pet.petId}
+                onClick={() => handlePetClick(pet)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="pet-image-container">
                   <img
                     src={pet.photoUrl || defaultProfile}
@@ -242,7 +308,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          
+
           {loading && <p className="loading">Loading...</p>}
           {!hasMore && pets.length > 0 && (
             <p className="end-message">No more pets to show</p>
@@ -250,6 +316,44 @@ export default function Dashboard() {
 
           <div ref={loadMoreRef} style={{ height: '20px' }} />
         </div>
+
+        {selectedPet && (
+          <div className="modal-overlay">
+            <div className="modal-content" ref={modalRef}>
+              <div className="modal-header">
+                <h3>{selectedPet.name}</h3>
+                <button onClick={() => setSelectedPet(null)} className="close-button">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="modal-body">
+                <img
+                  src={selectedPet.photoUrl || defaultProfile}
+                  alt={selectedPet.name}
+                  className="modal-pet-image"
+                />
+                <p><strong>Breed:</strong> {selectedPet.breed}</p>
+                <p><strong>Description:</strong> {selectedPet.description}</p>
+                <p><strong>Price:</strong> ${selectedPet.price}</p>
+                <p><strong>Availability:</strong> {selectedPet.availabilityStatus}</p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  onClick={() => navigate('/booking', { state: { petId: selectedPet.petId, petName: selectedPet.name } })}
+                  className="modal-button"
+                >
+                  <Calendar size={16} /> Book
+                </button>
+                <button
+                  onClick={() => navigate(`/messages/${selectedPet.userId}`)}
+                  className="modal-button"
+                >
+                  <MessageSquare size={16} /> Chat
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

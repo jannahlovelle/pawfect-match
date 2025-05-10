@@ -110,6 +110,29 @@ public class PetService {
         logger.info("Created pet with ID: {} for userId: {}", savedPet.getPetId(), userId);
         return savedPet;
     }
+    public Pet getPetById(String petId) {
+    return petRepository.findById(petId)
+            .orElseThrow(() -> {
+                logger.error("Pet not found with ID: {}", petId);
+                return new RuntimeException("Pet not found with ID: " + petId);
+            });
+}
+
+
+public Pet getPetByIdAndUserId(String petId, String userId) {
+    Pet pet = petRepository.findById(petId)
+            .orElseThrow(() -> {
+                logger.error("Pet not found with ID: {}", petId);
+                return new RuntimeException("Pet not found with ID: " + petId);
+            });
+    
+    if (!pet.getUserId().equals(userId)) {
+        logger.warn("Unauthorized access for petId: {} by userId: {}", petId, userId);
+        throw new RuntimeException("You are not authorized to access this pet");
+    }
+    
+    return pet;
+}
 
     public Photo addPhoto(String petId, String authenticatedEmail, MultipartFile file) throws IOException {
         logger.info("Adding photo for petId: {} by email: {}", petId, authenticatedEmail);
@@ -177,7 +200,7 @@ public class PetService {
         return photos;
     }
 
-    public Pet updatePet(String petId, String userId, UpdatePetRequest request) {
+   public Pet updatePet(String petId, String userId, UpdatePetRequest request) {
         Pet pet = petRepository.findById(petId)
                 .orElseThrow(() -> {
                     logger.error("Pet not found with ID: {}", petId);
@@ -230,6 +253,7 @@ public class PetService {
         logger.info("Updated pet with ID: {}", petId);
         return updatedPet;
     }
+
 
     public void deletePet(String petId, String userId) {
         Pet pet = petRepository.findById(petId)

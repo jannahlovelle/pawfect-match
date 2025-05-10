@@ -3,7 +3,7 @@ html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Prevent double scrollbars */
+  overflow: hidden;
 }
 
 .home-wrapper {
@@ -11,34 +11,31 @@ html, body, #root {
   flex-direction: column;
   height: 100vh;
   background-color: #f5f7fa;
+  color: #1e293b;
 }
 
-/* Main Content Area - SINGLE SCROLLBAR CONTAINER */
 .main-content {
   display: flex;
   flex: 1;
-  overflow: hidden; /* Contain all scrolling */
+  overflow: hidden;
 }
 
-/* Sidebar - Fixed height, no scrolling */
 .sidebar {
   width: 250px;
   padding: 20px;
   background-color: #ffffff;
   border-right: 1px solid #e2e8f0;
-  flex-shrink: 0; /* Prevent shrinking */
-  overflow: hidden; /* Disable sidebar scrolling */
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-/* Center Content - ONLY SCROLLABLE AREA */
 .center-content {
   flex: 1;
   padding: 20px;
-  overflow-y: auto; /* Only this area scrolls */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Rest of your styles (unchanged) */
 .sidebar-section {
   margin-bottom: 20px;
 }
@@ -67,6 +64,7 @@ html, body, #root {
   background-color: #f1f5f9;
 }
 
+/* Pet Feed Styles */
 .pet-feed-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -80,6 +78,7 @@ html, body, #root {
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
+  color: #1e293b;
 }
 
 .pet-card:hover {
@@ -106,6 +105,12 @@ html, body, #root {
 .pet-info h3 {
   margin: 0 0 5px 0;
   color: #1e293b;
+}
+
+.pet-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #475569;
 }
 
 /* Settings Popup Styles */
@@ -149,15 +154,118 @@ html, body, #root {
   border: none;
   cursor: pointer;
   text-align: left;
+  color: #334155;
 }
 
 .delete-account {
   color: #e53e3e;
 }
 
-/* Dark Mode Styles */
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  padding: 20px;
+  color: #1e293b;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #1e293b;
+  padding: 5px;
+}
+
+.close-button:hover {
+  color: #4a90e2;
+}
+
+.modal-body {
+  margin-bottom: 15px;
+}
+
+.modal-body p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.modal-pet-image {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-button {
+  background-color: #4a90e2;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.modal-button:hover {
+  background-color: #357abd;
+}
+
+/* Search Bar */
+.search-bar input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+/* DARK MODE SUPPORT */
 .dark .home-wrapper {
   background-color: #1a202c;
+  color: #f7fafc;
 }
 
 .dark .sidebar {
@@ -165,8 +273,13 @@ html, body, #root {
   border-right-color: #4a5568;
 }
 
+.dark .sidebar-section h4 {
+  color: #a0aec0;
+}
+
 .dark .sidebar a,
-.dark .settings-button {
+.dark .settings-button,
+.dark .settings-item {
   color: #f7fafc;
 }
 
@@ -180,9 +293,17 @@ html, body, #root {
 
 .dark .pet-card {
   background-color: #2d3748;
+  color: #f7fafc;
 }
 
-.dark .pet-info h3 {
+.dark .pet-info h3,
+.dark .pet-info p {
+  color: #f7fafc;
+}
+
+.dark .search-bar input {
+  background-color: #2d3748;
+  border-color: #4a5568;
   color: #f7fafc;
 }
 
@@ -191,6 +312,30 @@ html, body, #root {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.dark .settings-item {
+.dark .modal-content {
+  background-color: #1a1a1a;
   color: #f7fafc;
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+}
+
+.dark .modal-header h3,
+.dark .modal-body p {
+  color: #f0f0f0;
+}
+
+.dark .close-button {
+  color: #f0f0f0;
+}
+
+.dark .close-button:hover {
+  color: #4a90e2;
+}
+
+.dark .modal-button {
+  background-color: #2c5282;
+  color: #f7fafc;
+}
+
+.dark .modal-button:hover {
+  background-color: #2b6cb0;
 }

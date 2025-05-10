@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 @RestController
 @RequestMapping("/pets")
 public class PetController {
@@ -268,4 +269,38 @@ public class PetController {
             return ResponseEntity.status(400).body(errorResponse);
         }
     }
+    @GetMapping("/{petId}")
+public ResponseEntity<?> getPet(@PathVariable String petId) {
+    try {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    logger.error("User not found with email: {}", email);
+                    return new RuntimeException("User not found with email: " + email);
+                });
+
+        Pet pet = petService.getPetByIdAndUserId(petId, user.getUserID());
+        return ResponseEntity.ok(pet);
+    } catch (Exception e) {
+        logger.error("Error retrieving pet with ID: {}: {}", petId, e.getMessage());
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("status", "error");
+        errorResponse.put("message", "An error occurred while retrieving the pet: " + e.getMessage());
+        return ResponseEntity.status(400).body(errorResponse);
+    }
+    }
+    @GetMapping("/public/{petId}")
+    public ResponseEntity<?> getPublicPet(@PathVariable String petId) {
+        try {
+            Pet pet = petService.getPetById(petId);
+            return ResponseEntity.ok(pet);
+        } catch (Exception e) {
+            logger.error("Error retrieving public pet with ID: {}: {}", petId, e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "An error occurred while retrieving the pet: " + e.getMessage());
+            return ResponseEntity.status(400).body(errorResponse);
+        }
+    }
+
 }

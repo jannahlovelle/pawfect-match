@@ -153,12 +153,45 @@ export default function UserProfile() {
     }
   };
 
+  const handleDeletePet = async (petId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this pet?");
+    if (!confirmDelete) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/pets/delete/${petId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete pet");
+      }
+
+      // Remove the deleted pet from state
+      setUserPets(userPets.filter(pet => pet.petId !== petId));
+      alert(data.message || "Pet deleted successfully");
+    } catch (err) {
+      console.error("Error deleting pet:", err);
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="home-wrapper">
       <Banner firstName={userDetails.fullName.split(' ')[0] || 'User'} onLogout={handleLogout} />
 
       <div className="main-content">
-        {/* Consolidated Left Sidebar */}
         <div className="sidebar">
           <div className="sidebar-section">
             <h4>Menu</h4>
@@ -171,7 +204,6 @@ export default function UserProfile() {
           <div className="sidebar-section">
             <h4>Pets</h4>
             <Link to="/profile" className="active"><User size={20} /> Profile</Link>
-            <Link to="/pet-list"><List size={20} /> My Pet List</Link>
             <Link to="/add-pet"><Plus size={20} /> Add Pet</Link>
           </div>
           
@@ -182,7 +214,6 @@ export default function UserProfile() {
           </div>
         </div>
 
-        {/* Expanded Center Content */}
         <div className="center-content expanded">
           {loading ? (
             <div className="loading-spinner">Loading profile...</div>
@@ -190,7 +221,6 @@ export default function UserProfile() {
             <p className="error-message">{error}</p>
           ) : (
             <div className="profile-container">
-              {/* User Profile Section */}
               <div className="profile-header">
                 <div className="profile-image-container">
                   <img
@@ -221,7 +251,6 @@ export default function UserProfile() {
                 </div>
               </div>
 
-              {/* Pets Section */}
               <div className="pets-section">
                 <div className="section-header">
                   <h3>My Pets</h3>
@@ -235,7 +264,7 @@ export default function UserProfile() {
                 ) : userPets.length > 0 ? (
                   <div className="pets-grid">
                     {userPets.map((pet) => (
-                      <Link to={`/pet/${pet.petId}`} key={pet.petId} className="pet-card">
+                      <div key={pet.petId} className="pet-card">
                         <div className="pet-image-container">
                           <img
                             src={pet.photo}
@@ -254,7 +283,21 @@ export default function UserProfile() {
                           </div>
                           {pet.age && <div className="pet-age">{pet.age} years old</div>}
                         </div>
-                      </Link>
+                        <div className="pet-actions">
+                          <button 
+                            className="edit-pet-btn"
+                            onClick={() => navigate(`/edit-pet/${pet.petId}`)}
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            className="delete-pet-btn"
+                            onClick={() => handleDeletePet(pet.petId)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (

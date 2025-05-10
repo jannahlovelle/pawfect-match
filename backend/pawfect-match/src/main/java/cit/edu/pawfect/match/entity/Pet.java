@@ -21,7 +21,7 @@ public class Pet {
     private String color;
     private String description;
     private String availabilityStatus; // "available", "reserved", "sold"
-    private double price;
+    private double price; //Price for the breeding service
     private String pedigreeInfo;
     private String healthStatus;
 
